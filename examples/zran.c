@@ -58,7 +58,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "zlib.h"
+#include <zlib/zlib.h>
 #include "zran.h"
 
 #define WINSIZE 32768U      /* sliding window size */

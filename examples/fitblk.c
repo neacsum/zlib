@@ -54,7 +54,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "zlib.h"
+#include <zlib/zlib.h>
 
 #define local static
 

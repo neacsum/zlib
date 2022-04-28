@@ -43,7 +43,7 @@ $ Make    = "''p1'"
 $ name     = "Zlib"
 $ version  = "?.?.?"
 $ v_string = "ZLIB_VERSION"
-$ v_file   = "zlib.h"
+$ v_file   = <zlib/zlib.h>
 $ ccopt   = "/include = []"
 $ lopts   = ""
 $ dnsrl   = ""

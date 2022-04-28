@@ -4,7 +4,7 @@
  * Version 1.2  14 Oct 2018  Mark Adler */
 
 #include <stdio.h>
-#include "zlib.h"
+#include <zlib/zlib.h>
 
 /* Access point list. */
 struct deflate_index {

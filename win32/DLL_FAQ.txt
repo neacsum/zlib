@@ -22,7 +22,7 @@ in the zlib distribution, or at the following location:
     specification:
 
     * The exported symbols are exclusively defined in the source
-      files "zlib.h" and "zlib.def", found in an official zlib
+      files <zlib/zlib.h> and "zlib.def", found in an official zlib
       source distribution.
     * The symbols are exported by name, not by ordinal.
     * The exported names are undecorated.
@@ -49,7 +49,7 @@ in the zlib distribution, or at the following location:
   - The old ZLIB.DLL, built from zlib-1.1.4 or earlier, required
     compilation settings that were incompatible to those used by
     a static build.  The DLL settings were supposed to be enabled
-    by defining the macro ZLIB_DLL, before including "zlib.h".
+    by defining the macro ZLIB_DLL, before including <zlib/zlib.h>.
     Incorrect handling of this macro was silently accepted at
     build time, resulting in two major problems:
 
@@ -189,7 +189,7 @@ in the zlib distribution, or at the following location:
 
  7. I need a DLL for my Visual Basic project.  What can I do?
 
-  - Define the ZLIB_WINAPI macro before including "zlib.h", when
+  - Define the ZLIB_WINAPI macro before including <zlib/zlib.h>, when
     building both the DLL and the user application (except that
     you don't need to define anything when using the DLL in Visual
     Basic).  The ZLIB_WINAPI macro will switch on the WINAPI

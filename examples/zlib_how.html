@@ -48,7 +48,7 @@ functions <tt>inflateInit()</tt>, <tt>inflate()</tt>, and
 #include &lt;stdio.h&gt;
 #include &lt;string.h&gt;
 #include &lt;assert.h&gt;
-#include "zlib.h"
+#include <zlib/zlib.h>
 </b></pre><!-- -->
 This is an ugly hack required to avoid corruption of the input and output data on
 Windows/MS-DOS systems.  Without this, those systems would assume that the input and output

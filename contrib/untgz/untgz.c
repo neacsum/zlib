@@ -12,7 +12,7 @@
 #include <time.h>
 #include <errno.h>
 
-#include "zlib.h"
+#include <zlib/zlib.h>
 
 #ifdef unix
 #  include <unistd.h>
