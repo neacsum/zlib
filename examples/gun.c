@@ -62,19 +62,30 @@
 #include <string.h>         /* strerror(), strcmp(), strlen(), memcpy() */
 #include <errno.h>          /* errno */
 #include <fcntl.h>          /* open() */
-#include <unistd.h>         /* read(), write(), close(), chown(), unlink() */
 #include <sys/types.h>
 #include <sys/stat.h>       /* stat(), chmod() */
+#ifdef _MSC_VER
+#include <sys/utime.h>
+#include <io.h>
+#else
+#include <unistd.h>         /* read(), write(), close(), chown(), unlink() */
 #include <utime.h>          /* utime() */
+#endif
 #include <zlib/zlib.h>           /* inflateBackInit(), inflateBack(), */
                             /* inflateBackEnd(), crc32() */
-
-/* function declaration */
-#define local static
 
 /* buffer constants */
 #define SIZE 32768U         /* input and output buffer sizes */
 #define PIECE 16384         /* limits i/o chunks for 16-bit int case */
+
+#ifdef _MSC_VER
+#define IN_O_FLAGS (_O_RDONLY | _O_BINARY)
+#define OUT_O_FLAGS (O_CREAT | O_TRUNC | O_WRONLY | _O_BINARY)
+#else
+#define IN_O_FLAGS _O_RDONLY
+#define OUT_O_FLAGS (O_CREAT | O_TRUNC | O_WRONLY)
+#endif
+
 
 /* structure for infback() to pass to input function in() -- it maintains the
    input file and a buffer of size SIZE */
@@ -86,13 +97,12 @@ struct ind {
 /* Load input buffer, assumed to be empty, and return bytes loaded and a
    pointer to them.  read() is called until the buffer is full, or until it
    returns end-of-file or error.  Return 0 on error. */
-local unsigned in(void *in_desc, z_const unsigned char **buf)
+static unsigned in (void *in_desc, const unsigned char **buf)
 {
     int ret;
     unsigned len;
     unsigned char *next;
-    struct ind *me = (struct ind *)in_desc;
-
+    const struct ind* me = (const struct ind*)in_desc;
     next = me->inbuf;
     *buf = next;
     len = 0;
@@ -128,7 +138,7 @@ struct outd {
    On success out() returns 0.  For a write failure, out() returns 1.  If the
    output file descriptor is -1, then nothing is written.
  */
-local int out(void *out_desc, unsigned char *buf, unsigned len)
+static int out(void *out_desc, unsigned char *buf, unsigned len)
 {
     int ret;
     struct outd *me = (struct outd *)out_desc;
@@ -197,7 +207,7 @@ unsigned char match[65280 + 2];         /* buffer for reversed match or gzip
    file, read error, or write error (a write error indicated by strm->next_in
    not equal to Z_NULL), or Z_DATA_ERROR for invalid input.
  */
-local int lunpipe(unsigned have, z_const unsigned char *next, struct ind *indp,
+static int lunpipe(unsigned have, const unsigned char *next, struct ind *indp,
                   int outfile, z_stream *strm)
 {
     int last;                   /* last byte read by NEXT(), or -1 if EOF */
@@ -380,11 +390,11 @@ local int lunpipe(unsigned have, z_const unsigned char *next, struct ind *indp,
    prematurely or a write error occurs, or Z_ERRNO if junk (not a another gzip
    stream) follows a valid gzip stream.
  */
-local int gunpipe(z_stream *strm, int infile, int outfile)
+static int gunpipe(z_stream *strm, int infile, int outfile)
 {
     int ret, first, last;
     unsigned have, flags, len;
-    z_const unsigned char *next = NULL;
+    const unsigned char *next = NULL;
     struct ind ind, *indp;
     struct outd outd;
 
@@ -514,7 +524,7 @@ local int gunpipe(z_stream *strm, int infile, int outfile)
    no errors are reported.  The mode bits, including suid, sgid, and the sticky
    bit are copied (if allowed), the owner's user id and group id are copied
    (again if allowed), and the access and modify times are copied. */
-local void copymeta(char *from, char *to)
+static void copymeta(char *from, char *to)
 {
     struct stat was;
     struct utimbuf when;
@@ -526,9 +536,10 @@ local void copymeta(char *from, char *to)
     /* set to's mode bits, ignore errors */
     (void)chmod(to, was.st_mode & 07777);
 
+#ifndef _MSC_VER
     /* copy owner's user and group, ignore errors */
     (void)chown(to, was.st_uid, was.st_gid);
-
+#endif
     /* copy access and modify times, ignore errors */
     when.actime = was.st_atime;
     when.modtime = was.st_mtime;
@@ -545,7 +556,7 @@ local void copymeta(char *from, char *to)
    gunzip() returns 1 if there is an out-of-memory error or an unexpected
    return code from gunpipe().  Otherwise it returns 0.
  */
-local int gunzip(z_stream *strm, char *inname, char *outname, int test)
+static int gunzip(z_stream *strm, char *inname, char *outname, int test)
 {
     int ret;
     int infile, outfile;
@@ -556,7 +567,7 @@ local int gunzip(z_stream *strm, char *inname, char *outname, int test)
         infile = 0;     /* stdin */
     }
     else {
-        infile = open(inname, O_RDONLY, 0);
+        infile = open(inname, IN_O_FLAGS, 0);
         if (infile == -1) {
             fprintf(stderr, "gun cannot open %s\n", inname);
             return 0;
@@ -569,7 +580,7 @@ local int gunzip(z_stream *strm, char *inname, char *outname, int test)
         outfile = 1;    /* stdout */
     }
     else {
-        outfile = open(outname, O_CREAT | O_TRUNC | O_WRONLY, 0666);
+        outfile = open(outname, OUT_O_FLAGS, 0666);
         if (outfile == -1) {
             close(infile);
             fprintf(stderr, "gun cannot create %s\n", outname);

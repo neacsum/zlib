@@ -56,14 +56,24 @@
 #include <stdio.h>      /* fputs(), fprintf(), fwrite(), putc() */
 #include <stdlib.h>     /* exit(), malloc(), free() */
 #include <fcntl.h>      /* open() */
+#ifdef _MSC_VER
+#include <io.h>
+#else
 #include <unistd.h>     /* close(), read(), lseek() */
+#endif
+
 #include <zlib/zlib.h>
     /* crc32(), crc32_combine(), inflateInit2(), inflate(), inflateEnd() */
 
-#define local static
+#ifdef _MSC_VER
+#define IN_O_FLAGS (_O_RDONLY | _O_BINARY)
+#else
+#define IN_O_FLAGS O_RDONLY
+#endif
+
 
 /* exit with an error (return a value to allow use in an expression) */
-local int bail(char *why1, char *why2)
+int bail(char *why1, char *why2)
 {
     fprintf(stderr, "gzjoin error: %s%s, output incomplete\n", why1, why2);
     exit(1);
@@ -84,7 +94,7 @@ typedef struct {
 } bin;
 
 /* close a buffered file and free allocated memory */
-local void bclose(bin *in)
+void bclose(bin *in)
 {
     if (in != NULL) {
         if (in->fd != -1)
@@ -97,7 +107,7 @@ local void bclose(bin *in)
 
 /* open a buffered file for input, return a pointer to type bin, or NULL on
    failure */
-local bin *bopen(char *name)
+bin *bopen(char *name)
 {
     bin *in;
 
@@ -105,7 +115,7 @@ local bin *bopen(char *name)
     if (in == NULL)
         return NULL;
     in->buf = malloc(CHUNK);
-    in->fd = open(name, O_RDONLY, 0);
+    in->fd = open(name, IN_O_FLAGS, 0);
     if (in->buf == NULL || in->fd == -1) {
         bclose(in);
         return NULL;
@@ -118,7 +128,7 @@ local bin *bopen(char *name)
 
 /* load buffer from file, return -1 on read error, 0 or 1 on success, with
    1 indicating that end-of-file was reached */
-local int bload(bin *in)
+int bload(bin *in)
 {
     long len;
 
@@ -142,7 +152,7 @@ local int bload(bin *in)
                     bail("unexpected end of file on ", in->name))
 
 /* get a four-byte little-endian unsigned integer from file */
-local unsigned long bget4(bin *in)
+unsigned long bget4(bin *in)
 {
     unsigned long val;
 
@@ -154,7 +164,7 @@ local unsigned long bget4(bin *in)
 }
 
 /* skip bytes in file */
-local void bskip(bin *in, unsigned skip)
+void bskip(bin *in, unsigned skip)
 {
     /* check pointer */
     if (in == NULL)
@@ -201,7 +211,7 @@ local void bskip(bin *in, unsigned skip)
 /* -- end of buffered input functions -- */
 
 /* skip the gzip header from file in */
-local void gzhead(bin *in)
+void gzhead(bin *in)
 {
     int flags;
 
@@ -242,7 +252,7 @@ local void gzhead(bin *in)
 }
 
 /* write a four-byte little-endian unsigned integer to out */
-local void put4(unsigned long val, FILE *out)
+void put4(unsigned long val, FILE *out)
 {
     putc(val & 0xff, out);
     putc((val >> 8) & 0xff, out);
@@ -251,7 +261,7 @@ local void put4(unsigned long val, FILE *out)
 }
 
 /* Load up zlib stream from buffered input, bail if end of file */
-local void zpull(z_streamp strm, bin *in)
+void zpull(z_streamp strm, bin *in)
 {
     if (in->left == 0)
         bload(in);
@@ -262,7 +272,7 @@ local void zpull(z_streamp strm, bin *in)
 }
 
 /* Write header for gzip file to out and initialize trailer. */
-local void gzinit(unsigned long *crc, unsigned long *tot, FILE *out)
+void gzinit(unsigned long *crc, unsigned long *tot, FILE *out)
 {
     fwrite("\x1f\x8b\x08\0\0\0\0\0\0\xff", 1, 10, out);
     *crc = crc32(0L, Z_NULL, 0);
@@ -276,7 +286,7 @@ local void gzinit(unsigned long *crc, unsigned long *tot, FILE *out)
    crc and length (modulo 2^32) of the output for the trailer.  The resulting
    gzip file is written to out.  gzinit() must be called before the first call
    of gzcopy() to write the gzip header and to initialize crc and tot. */
-local void gzcopy(char *name, int clr, unsigned long *crc, unsigned long *tot,
+void gzcopy(char *name, int clr, unsigned long *crc, unsigned long *tot,
                   FILE *out)
 {
     int ret;                /* return value from zlib functions */
@@ -438,6 +448,10 @@ int main(int argc, char **argv)
               stderr);
         return 0;
     }
+
+#ifdef _MSC_VER
+    setmode (fileno (stdout), O_BINARY);
+#endif
 
     /* join gzip files on command line and write to stdout */
     gzinit(&crc, &tot, stdout);

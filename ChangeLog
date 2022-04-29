@@ -1,5 +1,10 @@
 
                 ChangeLog file for zlib
+Changes for upcoming version:
+- replace K&R function style with ANSI C style. Rationale: we are in 2022 :)
+- revmove FAR specifier. Rationale: 16-bit systems are excedingly rare.
+- replace zconst with const. Rationale: some of zlib declarations already use
+  const.
 
 Changes in 1.2.12 (27 Mar 2022)
 - Cygwin does not have _wopen(), so do not create gzopen_w() there

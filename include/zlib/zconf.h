@@ -237,6 +237,20 @@
 #  define z_const
 #endif
 
+/*
+  Z_SOLO is used to compile and use zlib without the use of any external
+  libraries. It is for use in embedded environments. There are no gz* functions
+  and several other functions that depend on memory allocation are also taken
+  out (compress(), uncompress()). The base zlib initialization functions
+  (e.g. deflateInit()) must be provided memory allocation functions.
+
+  In order to use Z_SOLO you need to edit zconf.h to have a #define Z_SOLO near
+  the beginning. Then compile zlib and use it with the edited zconf.h. 
+  (If you only compile with Z_SOLO, but do not edit zconf.h, then you'll get
+  messed up with you try to use the compiled zlib with the header files.)
+  (cf. https://stackoverflow.com/questions/12930302/compiling-zlib-for-windows-mobile-6)
+*/
+//define Z_SOLO
 #ifdef Z_SOLO
    typedef unsigned long z_size_t;
 #else
@@ -529,6 +543,12 @@ typedef uLong FAR uLongf;
   #pragma map(inflate_table,"INTABL")
   #pragma map(inflate_fast,"INFA")
   #pragma map(inflate_copyright,"INCOPY")
+#endif
+
+//Just for debugging
+#ifdef _DEBUG
+#define ZLIB_DEBUG
+#define verbose 0
 #endif
 
 #endif /* ZCONF_H */

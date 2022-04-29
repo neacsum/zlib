@@ -81,16 +81,27 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#ifndef _MSC_VER
 #include <unistd.h>
+#else
+#include <io.h>
+#endif
 #include <zlib/zlib.h>
 
-#define local static
+#ifdef _MSC_VER
+#define IN_O_FLAGS (_O_RDONLY | _O_BINARY)
+#define OUT_O_FLAGS (_O_RDWR | _O_BINARY)
+#else
+#define IN_O_FLAGS O_RDONLY
+#define OUT_O_FLAGS O_RDWR
+#endif
+
 #define LGCHUNK 14
 #define CHUNK (1U << LGCHUNK)
 #define DSIZE 32768U
 
 /* print an error message and terminate with extreme prejudice */
-local void bye(char *msg1, char *msg2)
+void bye(char *msg1, char *msg2)
 {
     fprintf(stderr, "gzappend error: %s%s\n", msg1, msg2);
     exit(1);
@@ -99,7 +110,7 @@ local void bye(char *msg1, char *msg2)
 /* return the greatest common divisor of a and b using Euclid's algorithm,
    modified to be fast when one argument much greater than the other, and
    coded to avoid unnecessary swapping */
-local unsigned gcd(unsigned a, unsigned b)
+unsigned gcd(unsigned a, unsigned b)
 {
     unsigned c;
 
@@ -120,7 +131,7 @@ local unsigned gcd(unsigned a, unsigned b)
 }
 
 /* rotate list[0..len-1] left by rot positions, in place */
-local void rotate(unsigned char *list, unsigned len, unsigned rot)
+void rotate(unsigned char *list, unsigned len, unsigned rot)
 {
     unsigned char tmp;
     unsigned cycles;
@@ -172,12 +183,12 @@ typedef struct {
     int size;                   /* 1 << size is bytes in buf */
     unsigned left;              /* bytes available at next */
     unsigned char *buf;         /* buffer */
-    z_const unsigned char *next;    /* next byte in buffer */
+    const unsigned char *next;    /* next byte in buffer */
     char *name;                 /* file name for error messages */
 } file;
 
 /* reload buffer */
-local int readin(file *in)
+int readin(file *in)
 {
     int len;
 
@@ -189,7 +200,7 @@ local int readin(file *in)
 }
 
 /* read from file in, exit if end-of-file */
-local int readmore(file *in)
+int readmore(file *in)
 {
     if (readin(in) == 0) bye("unexpected end of ", in->name);
     return 0;
@@ -199,7 +210,7 @@ local int readmore(file *in)
                    in->left--, *(in->next)++)
 
 /* skip over n bytes of in */
-local void skip(file *in, unsigned n)
+void skip(file *in, unsigned n)
 {
     unsigned bypass;
 
@@ -232,7 +243,7 @@ unsigned long read4(file *in)
 }
 
 /* skip over gzip header */
-local void gzheader(file *in)
+void gzheader(file *in)
 {
     int flags;
     unsigned n;
@@ -256,7 +267,7 @@ local void gzheader(file *in)
    continue compression of the data in the gzip file, and return a file
    descriptor pointing to where to write the compressed data -- the deflate
    stream is initialized to compress using level "level" */
-local int gzscan(char *name, z_stream *strm, int level)
+int gzscan(char *name, z_stream *strm, int level)
 {
     int ret, lastbit, left, full;
     unsigned have;
@@ -267,7 +278,7 @@ local int gzscan(char *name, z_stream *strm, int level)
 
     /* open gzip file */
     gz.name = name;
-    gz.fd = open(name, O_RDWR, 0);
+    gz.fd = open(name, OUT_O_FLAGS, 0);
     if (gz.fd == -1) bye("cannot open ", name);
     gz.buf = malloc(CHUNK);
     if (gz.buf == NULL) bye("out of memory", "");
@@ -311,7 +322,7 @@ local int gzscan(char *name, z_stream *strm, int level)
         if (ret == Z_STREAM_ERROR) bye("internal stream error!", "");
         if (ret == Z_MEM_ERROR) bye("out of memory", "");
         if (ret == Z_DATA_ERROR)
-            bye("invalid compressed data--format violated in", name);
+            bye("invalid compressed data--format violated in ", name);
 
         /* update crc and sliding window pointer */
         crc = crc32(crc, window + have, DSIZE - have - strm->avail_out);
@@ -385,7 +396,7 @@ local int gzscan(char *name, z_stream *strm, int level)
 
 /* append file "name" to gzip file gd using deflate stream strm -- if last
    is true, then finish off the deflate stream at the end */
-local void gztack(char *name, int gd, z_stream *strm, int last)
+void gztack(char *name, int gd, z_stream *strm, int last)
 {
     int fd, len, ret;
     unsigned left;
@@ -394,10 +405,13 @@ local void gztack(char *name, int gd, z_stream *strm, int last)
     /* open file to compress and append */
     fd = 0;
     if (name != NULL) {
-        fd = open(name, O_RDONLY, 0);
+        fd = open(name, IN_O_FLAGS, 0);
         if (fd == -1)
-            fprintf(stderr, "gzappend warning: %s not found, skipping ...\n",
-                    name);
+        {
+          fprintf (stderr, "gzappend warning: %s not found, skipping ...\n",
+            name);
+          return;
+        }
     }
 
     /* allocate buffers */

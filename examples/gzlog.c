@@ -228,12 +228,17 @@
 #include <stdlib.h>     /* malloc, free */
 #include <string.h>     /* strlen, strrchr, strcpy, strncpy, strcmp */
 #include <fcntl.h>      /* open */
+#ifdef _MSC_VER
+#include <io.h>
+#include <sys/utime.h>
+#else
 #include <unistd.h>     /* lseek, read, write, close, unlink, sleep, */
                         /* ftruncate, fsync */
+#include <sys/time.h>   /* utimes */
+#endif
 #include <errno.h>      /* errno */
 #include <time.h>       /* time, ctime */
 #include <sys/stat.h>   /* stat */
-#include <sys/time.h>   /* utimes */
 #include <zlib/zlib.h>       /* crc32 */
 
 #include "gzlog.h"      /* header for external access */
@@ -609,7 +614,7 @@ local int log_compress(struct log *log, unsigned char *data, size_t len)
 {
     int fd;
     uint got, max;
-    ssize_t dict;
+    size_t dict;
     off_t end;
     z_stream strm;
     unsigned char buf[DICT];
