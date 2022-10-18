@@ -119,21 +119,21 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30128.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)lib/$(PlatformTarget)/$(Configuration)/</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='DLL_Debug|Win32'">$(SolutionDir)exe/$(PlatformTarget)/$(Configuration)/</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='DLL_Debug|Win32'">$(SolutionDir)o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='DLL_Debug|Win32'">$(SolutionDir)build/exe/$(PlatformTarget)/$(Configuration)/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)build/o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='DLL_Debug|Win32'">$(SolutionDir)build/o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)lib/$(PlatformTarget)/$(Configuration)/</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='DLL_Release|Win32'">$(SolutionDir)exe/$(PlatformTarget)/$(Configuration)/</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='DLL_Release|Win32'">$(SolutionDir)o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='DLL_Release|Win32'">$(SolutionDir)build/exe/$(PlatformTarget)/$(Configuration)/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)build/o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='DLL_Release|Win32'">$(SolutionDir)build/o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)lib/$(PlatformTarget)/$(Configuration)/</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='DLL_Debug|x64'">$(SolutionDir)exe/$(PlatformTarget)/$(Configuration)/</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='DLL_Debug|x64'">$(SolutionDir)o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='DLL_Debug|x64'">$(SolutionDir)build/exe/$(PlatformTarget)/$(Configuration)/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)build/o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='DLL_Debug|x64'">$(SolutionDir)build/o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)lib/$(PlatformTarget)/$(Configuration)/</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='DLL_Release|x64'">$(SolutionDir)exe/$(PlatformTarget)/$(Configuration)/</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='DLL_Release|x64'">$(SolutionDir)o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='DLL_Release|x64'">$(SolutionDir)build/exe/$(PlatformTarget)/$(Configuration)/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)build/o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='DLL_Release|x64'">$(SolutionDir)build/o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='DLL_Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />

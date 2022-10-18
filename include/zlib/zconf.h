@@ -299,22 +299,6 @@
 
                         /* Type declarations */
 
-#ifndef OF /* function prototypes */
-#  ifdef STDC
-#    define OF(args)  args
-#  else
-#    define OF(args)  ()
-#  endif
-#endif
-
-#ifndef Z_ARG /* function prototypes for stdarg */
-#  if defined(STDC) || defined(Z_HAVE_STDARG_H)
-#    define Z_ARG(args)  args
-#  else
-#    define Z_ARG(args)  ()
-#  endif
-#endif
-
 /* The following definitions for FAR are needed only for MSDOS mixed
  * model programming (small or medium model with some far allocations).
  * This was tested only with MSC; for other MSDOS compilers you may have
@@ -355,6 +339,9 @@
 #      endif
 #    endif
 #  endif  /* ZLIB_DLL */
+#  if defined (_MSC_VER) && !defined (ZLIB_INTERNAL)
+#   pragma comment (lib, "zlib.lib")
+#  endif 
    /* If building or using zlib with the WINAPI/WINAPIV calling convention,
     * define ZLIB_WINAPI.
     * Caution: the standard ZLIB1.DLL is NOT compiled using ZLIB_WINAPI.

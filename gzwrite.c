@@ -6,10 +6,10 @@
 #include "gzguts.h"
 
 /* Local functions */
-local int gz_init OF((gz_statep));
-local int gz_comp OF((gz_statep, int));
-local int gz_zero OF((gz_statep, z_off64_t));
-local z_size_t gz_write OF((gz_statep, voidpc, z_size_t));
+local int gz_init (gz_statep);
+local int gz_comp (gz_statep, int);
+local int gz_zero (gz_statep, z_off64_t);
+local z_size_t gz_write (gz_statep, voidpc, z_size_t);
 
 /* Initialize state for writing a gzip file.  Mark initialization by setting
    state->size to non-zero.  Return -1 on a memory allocation failure, or 0 on
