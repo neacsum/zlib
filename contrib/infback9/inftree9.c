@@ -1,5 +1,5 @@
 /* inftree9.c -- generate Huffman trees for efficient decoding
- * Copyright (C) 1995-2022 Mark Adler
+ * Copyright (C) 1995-2023 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -9,7 +9,7 @@
 #define MAXBITS 15
 
 const char inflate9_copyright[] =
-   " inflate9 1.2.12 Copyright 1995-2022 Mark Adler ";
+   " inflate9 1.3.0.1 Copyright 1995-2023 Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -29,14 +29,9 @@ const char inflate9_copyright[] =
    table index bits.  It will differ if the request is greater than the
    longest code or if it is less than the shortest code.
  */
-int inflate_table9(type, lens, codes, table, bits, work)
-codetype type;
-unsigned short FAR *lens;
-unsigned codes;
-code FAR * FAR *table;
-unsigned FAR *bits;
-unsigned short FAR *work;
-{
+int inflate_table9(codetype type, unsigned short *lens, unsigned codes,
+                   code **table, unsigned *bits,
+                   unsigned short FAR *work) {
     unsigned len;               /* a code's length in bits */
     unsigned sym;               /* index of code symbols */
     unsigned min, max;          /* minimum and maximum code lengths */

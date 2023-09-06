@@ -28,7 +28,7 @@
         #endif
 #endif
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__HAIKU__) || defined(MINIZIP_FOPEN_NO_64)
 // In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
 #define FOPEN_FUNC(filename, mode) fopen(filename, mode)
 #define FTELLO_FUNC(stream) ftello(stream)
@@ -71,11 +71,9 @@
 #define MAXFILENAME (256)
 
 #ifdef _WIN32
-static int filetime(f, tmzip, dt)
-    const char *f;          /* name of file to get info on */
-    tm_zip *tmzip;             /* return value: access, modific. and creation times */
-    uLong *dt;             /* dostime */
-{
+/* f: name of file to get info on, tmzip: return value: access,
+   modification and creation times, dt: dostime */
+static int filetime(const char *f, tm_zip *tmzip, uLong *dt) {
   int ret = 0;
   {
       FILETIME ftLocal;
@@ -95,11 +93,9 @@ static int filetime(f, tmzip, dt)
 }
 #else
 #if defined(unix) || defined(__APPLE__)
-static int filetime(f, tmzip, dt)
-    const char *f;         /* name of file to get info on */
-    tm_zip *tmzip;         /* return value: access, modific. and creation times */
-    uLong *dt;             /* dostime */
-{
+/* f: name of file to get info on, tmzip: return value: access,
+   modification and creation times, dt: dostime */
+static int filetime(const char *f, tm_zip *tmzip, uLong *dt) {
   (void)dt;
   int ret=0;
   struct stat s;        /* results of stat() */
@@ -114,7 +110,7 @@ static int filetime(f, tmzip, dt)
       len = MAXFILENAME;
 
     strncpy(name, f,MAXFILENAME-1);
-    /* strncpy doesnt append the trailing NULL, of the string is too long. */
+    /* strncpy doesn't append the trailing NULL, of the string is too long. */
     name[ MAXFILENAME ] = '\0';
 
     if (name[len - 1] == '/')
@@ -138,11 +134,12 @@ static int filetime(f, tmzip, dt)
   return ret;
 }
 #else
-uLong filetime(f, tmzip, dt)
-    const char *f;          /* name of file to get info on */
-    tm_zip *tmzip;             /* return value: access, modific. and creation times */
-    uLong *dt;             /* dostime */
-{
+/* f: name of file to get info on, tmzip: return value: access,
+   modification and creation times, dt: dostime */
+static int filetime(const char *f, tm_zip *tmzip, uLong *dt) {
+    (void)f;
+    (void)tmzip;
+    (void)dt;
     return 0;
 }
 #endif
@@ -151,9 +148,7 @@ uLong filetime(f, tmzip, dt)
 
 
 
-static int check_exist_file(filename)
-    const char* filename;
-{
+static int check_exist_file(const char* filename) {
     FILE* ftestexist;
     int ret = 1;
     ftestexist = FOPEN_FUNC(filename,"rb");
@@ -190,7 +185,7 @@ static int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,
    FILE * fin = FOPEN_FUNC(filenameinzip,"rb");
 
    unsigned long size_read = 0;
-   unsigned long total_read = 0;
+   /* unsigned long total_read = 0; */
    if (fin==NULL)
    {
        err = ZIP_ERRNO;
@@ -210,7 +205,7 @@ static int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,
 
             if (size_read>0)
                 calculate_crc = crc32_z(calculate_crc,buf,size_read);
-            total_read += size_read;
+            /* total_read += size_read; */
 
         } while ((err == ZIP_OK) && (size_read>0));
 
@@ -222,8 +217,7 @@ static int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,
     return err;
 }
 
-static int isLargeFile(const char* filename)
-{
+static int isLargeFile(const char* filename) {
   int largeFile = 0;
   ZPOS64_T pos = 0;
   FILE* pFile = FOPEN_FUNC(filename, "rb");
@@ -233,7 +227,7 @@ static int isLargeFile(const char* filename)
     FSEEKO_FUNC(pFile, 0, SEEK_END);
     pos = (ZPOS64_T)FTELLO_FUNC(pFile);
 
-                printf("File : %s is %lld bytes\n", filename, pos);
+                printf("File : %s is %llu bytes\n", filename, pos);
 
     if(pos >= 0xffffffff)
      largeFile = 1;
@@ -244,10 +238,7 @@ static int isLargeFile(const char* filename)
  return largeFile;
 }
 
-int main(argc,argv)
-    int argc;
-    char *argv[];
-{
+int main(int argc, char *argv[]) {
     int i;
     int opt_overwrite=0;
     int opt_compress_level=Z_DEFAULT_COMPRESSION;
@@ -277,7 +268,7 @@ int main(argc,argv)
 
                 while ((*p)!='\0')
                 {
-                    char c=*(p++);;
+                    char c=*(p++);
                     if ((c=='o') || (c=='O'))
                         opt_overwrite = 1;
                     if ((c=='a') || (c=='A'))
@@ -323,7 +314,7 @@ int main(argc,argv)
 
         zipok = 1 ;
         strncpy(filename_try, argv[zipfilenamearg],MAXFILENAME-1);
-        /* strncpy doesnt append the trailing NULL, of the string is too long. */
+        /* strncpy doesn't append the trailing NULL, of the string is too long. */
         filename_try[ MAXFILENAME ] = '\0';
 
         len=(int)strlen(filename_try);
@@ -393,10 +384,10 @@ int main(argc,argv)
                   ((argv[i][1]=='o') || (argv[i][1]=='O') ||
                    (argv[i][1]=='a') || (argv[i][1]=='A') ||
                    (argv[i][1]=='p') || (argv[i][1]=='P') ||
-                   ((argv[i][1]>='0') || (argv[i][1]<='9'))) &&
+                   ((argv[i][1]>='0') && (argv[i][1]<='9'))) &&
                   (strlen(argv[i]) == 2)))
             {
-                FILE * fin;
+                FILE * fin = NULL;
                 size_t size_read;
                 const char* filenameinzip = argv[i];
                 const char *savefilenameinzip;
