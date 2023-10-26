@@ -14,21 +14,13 @@
 *.gcno
 *.gcov
 
-/example
-/example64
-/examplesh
-**/libz.so*
-/minigzip
-/minigzip64
-/minigzipsh
 /zlib.pc
 /configure.log
 
 .DS_Store
-exe/
 .vs/
-o/
-lib/
+/lib
+/build
 *.suo
 *.user
 *.aps

@@ -1,0 +1,8 @@
+{
+    "name": "zlib",
+    "git": "git@github.com:neacsum/zlib.git",
+    "https": "https://github.com/neacsum/zlib.git",
+    "build": [
+      {"os": "windows", "cmd": ".\\win32\\build.bat", "args": ["lib"]}
+    ]
+}

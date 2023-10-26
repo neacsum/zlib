@@ -1853,9 +1853,9 @@ ZEXTERN int ZEXPORT gzgetc_ (gzFile file);  /* backward compatibility */
    ZEXTERN gzFile ZEXPORT gzopen64 (const char *, const char *);
    ZEXTERN z_off64_t ZEXPORT gzseek64 (gzFile, z_off64_t, int);
    ZEXTERN z_off64_t ZEXPORT gztell64 (gzFile);
-   ZEXTERN z_off64_t ZEXPORT gzoffset64 OF((gzFile));
+   ZEXTERN z_off64_t ZEXPORT gzoffset64 (gzFile);
    ZEXTERN uLong ZEXPORT adler32_combine64 (uLong, uLong, z_off64_t);
-   ZEXTERN uLong ZEXPORT crc32_combine64 OF(uLong, uLong, z_off64_t);
+   ZEXTERN uLong ZEXPORT crc32_combine64 (uLong, uLong, z_off64_t);
    ZEXTERN uLong ZEXPORT crc32_combine_gen64 (z_off64_t);
 #endif
 
