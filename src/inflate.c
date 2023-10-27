@@ -163,6 +163,8 @@ int ZEXPORT inflateReset2 (z_streamp strm, int windowBits)
 
     /* extract wrap request from windowBits parameter */
     if (windowBits < 0) {
+        if (windowBits < -15)
+            return Z_STREAM_ERROR;
         wrap = 0;
         windowBits = -windowBits;
     }
@@ -244,6 +246,8 @@ int value;
     struct inflate_state* state;
 
     if (inflateStateCheck(strm)) return Z_STREAM_ERROR;
+    if (bits == 0)
+        return Z_OK;
     state = (struct inflate_state*)strm->state;
     if (bits < 0) {
         state->hold = 0;
@@ -610,7 +614,7 @@ int updatewindow (z_streamp strm, const Bytef* end, unsigned int copy)
 int ZEXPORT inflate (z_streamp strm, int flush)
 {
     struct inflate_state *state;
-    const unsigned char *next;  /* next input */
+    z_const unsigned char *next;  /* next input */
     unsigned char *put;         /* next output */
     unsigned have, left;        /* available input and output */
     unsigned long hold;         /* bit buffer */
@@ -1411,7 +1415,7 @@ int ZEXPORT inflateSync (z_streamp strm)
     /* if first time, start search in bit buffer */
     if (state->mode != SYNC) {
         state->mode = SYNC;
-        state->hold <<= state->bits & 7;
+        state->hold >>= state->bits & 7;
         state->bits -= state->bits & 7;
         len = 0;
         while (state->bits >= 8) {

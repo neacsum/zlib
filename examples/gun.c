@@ -43,7 +43,7 @@
    gun will also decompress files made by Unix compress, which uses LZW
    compression.  These files are automatically detected by virtue of their
    magic header bytes.  Since the end of Unix compress stream is marked by the
-   end-of-file, they cannot be concantenated.  If a Unix compress stream is
+   end-of-file, they cannot be concatenated.  If a Unix compress stream is
    encountered in an input file, it is the last stream in that file.
 
    Like gunzip and uncompress, the file attributes of the original compressed
@@ -97,12 +97,13 @@ struct ind {
 /* Load input buffer, assumed to be empty, and return bytes loaded and a
    pointer to them.  read() is called until the buffer is full, or until it
    returns end-of-file or error.  Return 0 on error. */
-static unsigned in (void *in_desc, const unsigned char **buf)
+unsigned in(void *in_desc, z_const unsigned char **buf)
 {
     int ret;
     unsigned len;
     unsigned char *next;
-    const struct ind* me = (const struct ind*)in_desc;
+    struct ind *me = (struct ind *)in_desc;
+
     next = me->inbuf;
     *buf = next;
     len = 0;
@@ -138,7 +139,7 @@ struct outd {
    On success out() returns 0.  For a write failure, out() returns 1.  If the
    output file descriptor is -1, then nothing is written.
  */
-static int out(void *out_desc, unsigned char *buf, unsigned len)
+int out(void *out_desc, unsigned char *buf, unsigned len)
 {
     int ret;
     struct outd *me = (struct outd *)out_desc;
@@ -207,7 +208,7 @@ unsigned char match[65280 + 2];         /* buffer for reversed match or gzip
    file, read error, or write error (a write error indicated by strm->next_in
    not equal to Z_NULL), or Z_DATA_ERROR for invalid input.
  */
-static int lunpipe(unsigned have, const unsigned char *next, struct ind *indp,
+int lunpipe(unsigned have, z_const unsigned char *next, struct ind *indp,
                   int outfile, z_stream *strm)
 {
     int last;                   /* last byte read by NEXT(), or -1 if EOF */
@@ -390,11 +391,11 @@ static int lunpipe(unsigned have, const unsigned char *next, struct ind *indp,
    prematurely or a write error occurs, or Z_ERRNO if junk (not a another gzip
    stream) follows a valid gzip stream.
  */
-static int gunpipe(z_stream *strm, int infile, int outfile)
+int gunpipe(z_stream *strm, int infile, int outfile)
 {
     int ret, first, last;
     unsigned have, flags, len;
-    const unsigned char *next = NULL;
+    z_const unsigned char *next = NULL;
     struct ind ind, *indp;
     struct outd outd;
 
@@ -524,7 +525,7 @@ static int gunpipe(z_stream *strm, int infile, int outfile)
    no errors are reported.  The mode bits, including suid, sgid, and the sticky
    bit are copied (if allowed), the owner's user id and group id are copied
    (again if allowed), and the access and modify times are copied. */
-static void copymeta(char *from, char *to)
+void copymeta(char *from, char *to)
 {
     struct stat was;
     struct utimbuf when;
@@ -556,7 +557,7 @@ static void copymeta(char *from, char *to)
    gunzip() returns 1 if there is an out-of-memory error or an unexpected
    return code from gunpipe().  Otherwise it returns 0.
  */
-static int gunzip(z_stream *strm, char *inname, char *outname, int test)
+int gunzip(z_stream *strm, char *inname, char *outname, int test)
 {
     int ret;
     int infile, outfile;

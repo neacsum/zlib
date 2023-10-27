@@ -46,14 +46,12 @@
       bytes, which is the maximum length that can be coded.  inflate_fast()
       requires strm->avail_out >= 258 for each loop to avoid checking for
       output space.
-
-  start - inflate()'s starting value for strm->avail_out
  */
 void ZLIB_INTERNAL inflate_fast (z_streamp strm, unsigned start)
 {
     struct inflate_state *state;
-    const unsigned char *in;    /* local strm->next_in */
-    const unsigned char* last;  /* have enough input while in < last */
+    z_const unsigned char *in;    /* local strm->next_in */
+    z_const unsigned char* last;  /* have enough input while in < last */
     unsigned char *out;         /* local strm->next_out */
     unsigned char *beg;         /* inflate()'s initial strm->next_out */
     unsigned char *end;         /* while out < end, enough space available */

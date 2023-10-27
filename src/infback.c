@@ -15,9 +15,6 @@
 #include "inflate.h"
 #include "inffast.h"
 
-/* function prototypes */
-static void fixedtables (struct inflate_state *state);
-
 /*
    strm provides memory allocation functions in zalloc and zfree, or
    Z_NULL to use the library memory allocation functions.
@@ -62,6 +59,7 @@ int ZEXPORT inflateBackInit_ (z_streamp strm, int windowBits, unsigned char* win
     state->window = window;
     state->wnext = 0;
     state->whave = 0;
+    state->sane = 1;
     return Z_OK;
 }
 
@@ -245,7 +243,7 @@ static void fixedtables (struct inflate_state* state)
 int ZEXPORT inflateBack (z_streamp strm, in_func in, void* in_desc, out_func out, void* out_desc)
 {
     struct inflate_state *state;
-    const unsigned char *next;  /* next input */
+    z_const unsigned char *next;  /* next input */
     unsigned char *put;         /* next output */
     unsigned have, left;        /* available input and output */
     unsigned long hold;         /* bit buffer */
@@ -595,25 +593,27 @@ int ZEXPORT inflateBack (z_streamp strm, in_func in, void* in_desc, out_func out
             break;
 
         case DONE:
-            /* inflate stream terminated properly -- write leftover output */
+            /* inflate stream terminated properly */
             ret = Z_STREAM_END;
-            if (left < state->wsize) {
-                if (out(out_desc, state->window, state->wsize - left))
-                    ret = Z_BUF_ERROR;
-            }
             goto inf_leave;
 
         case BAD:
             ret = Z_DATA_ERROR;
             goto inf_leave;
 
-        default:                /* can't happen, but makes compilers happy */
+        default:
+            /* can't happen, but makes compilers happy */
             ret = Z_STREAM_ERROR;
             goto inf_leave;
         }
 
-    /* Return unused input */
+    /* Write leftover output and return unused input */
   inf_leave:
+    if (left < state->wsize) {
+        if (out(out_desc, state->window, state->wsize - left) &&
+            ret == Z_STREAM_END)
+            ret = Z_BUF_ERROR;
+    }
     strm->next_in = next;
     strm->avail_in = have;
     return ret;

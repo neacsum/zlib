@@ -7,9 +7,8 @@
 #  ifndef _LARGEFILE_SOURCE
 #    define _LARGEFILE_SOURCE 1
 #  endif
-#  ifdef _FILE_OFFSET_BITS
-#    undef _FILE_OFFSET_BITS
-#  endif
+#  undef _FILE_OFFSET_BITS
+#  undef _TIME_BITS
 #endif
 
 #ifdef HAVE_HIDDEN
@@ -119,8 +118,8 @@
 
 /* gz* functions always use library allocation functions */
 #ifndef STDC
-  extern voidp  malloc OF((uInt size));
-  extern void   free   OF((voidpf ptr));
+  extern voidp  malloc(uInt size);
+  extern void   free(voidpf ptr);
 #endif
 
 /* get errno and strerror definition */
@@ -214,6 +213,6 @@ char ZLIB_INTERNAL *gz_strwinerror (DWORD error);
 #ifdef INT_MAX
 #  define GT_OFF(x) (sizeof(int) == sizeof(z_off64_t) && (x) > INT_MAX)
 #else
-unsigned ZLIB_INTERNAL gz_intmax OF((void));
+unsigned ZLIB_INTERNAL gz_intmax(void);
 #  define GT_OFF(x) (sizeof(int) == sizeof(z_off64_t) && (x) > gz_intmax())
 #endif

@@ -38,6 +38,9 @@
 #  define crc32                 z_crc32
 #  define crc32_combine         z_crc32_combine
 #  define crc32_combine64       z_crc32_combine64
+#  define crc32_combine_gen     z_crc32_combine_gen
+#  define crc32_combine_gen64   z_crc32_combine_gen64
+#  define crc32_combine_op      z_crc32_combine_op
 #  define crc32_z               z_crc32_z
 #  define deflate               z_deflate
 #  define deflateBound          z_deflateBound
@@ -237,22 +240,12 @@
 #  define z_const
 #endif
 
-/*
-  Z_SOLO is used to compile and use zlib without the use of any external
-  libraries. It is for use in embedded environments. There are no gz* functions
-  and several other functions that depend on memory allocation are also taken
-  out (compress(), uncompress()). The base zlib initialization functions
-  (e.g. deflateInit()) must be provided memory allocation functions.
-
-  In order to use Z_SOLO you need to edit zconf.h to have a #define Z_SOLO near
-  the beginning. Then compile zlib and use it with the edited zconf.h. 
-  (If you only compile with Z_SOLO, but do not edit zconf.h, then you'll get
-  messed up with you try to use the compiled zlib with the header files.)
-  (cf. https://stackoverflow.com/questions/12930302/compiling-zlib-for-windows-mobile-6)
-*/
-//define Z_SOLO
 #ifdef Z_SOLO
-   typedef unsigned long z_size_t;
+#  ifdef _WIN64
+     typedef unsigned long long z_size_t;
+#  else
+     typedef unsigned long z_size_t;
+#  endif
 #else
 #  define z_longlong long long
 #  if defined(NO_SIZE_T)
@@ -349,6 +342,9 @@
 #  ifdef ZLIB_WINAPI
 #    ifdef FAR
 #      undef FAR
+#    endif
+#    ifndef WIN32_LEAN_AND_MEAN
+#      define WIN32_LEAN_AND_MEAN
 #    endif
 #    include <windows.h>
      /* No need for _export, use ZLIB.DEF instead. */
@@ -468,11 +464,18 @@ typedef uLong FAR uLongf;
 #  undef _LARGEFILE64_SOURCE
 #endif
 
-#if defined(__WATCOMC__) && !defined(Z_HAVE_UNISTD_H)
-#  define Z_HAVE_UNISTD_H
+#ifndef Z_HAVE_UNISTD_H
+#  ifdef __WATCOMC__
+#    define Z_HAVE_UNISTD_H
+#  endif
+#endif
+#ifndef Z_HAVE_UNISTD_H
+#  if defined(_LARGEFILE64_SOURCE) && !defined(_WIN32)
+#    define Z_HAVE_UNISTD_H
+#  endif
 #endif
 #ifndef Z_SOLO
-#  if defined(Z_HAVE_UNISTD_H) || defined(_LARGEFILE64_SOURCE)
+#  if defined(Z_HAVE_UNISTD_H)
 #    include <unistd.h>         /* for SEEK_*, off_t, and _LFS64_LARGEFILE */
 #    ifdef VMS
 #      include <unixio.h>       /* for off_t */
@@ -508,7 +511,7 @@ typedef uLong FAR uLongf;
 #if !defined(_WIN32) && defined(Z_LARGE64)
 #  define z_off64_t off64_t
 #else
-#  if defined(_WIN32) && !defined(__GNUC__) && !defined(Z_SOLO)
+#  if defined(_WIN32) && !defined(__GNUC__)
 #    define z_off64_t __int64
 #  else
 #    define z_off64_t z_off_t

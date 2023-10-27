@@ -33,7 +33,7 @@
  *                      - Add L to constants in lseek() calls
  *                      - Remove some debugging information in error messages
  *                      - Use new data_type definition for zlib 1.2.1
- *                      - Simplfy and unify file operations
+ *                      - Simplify and unify file operations
  *                      - Finish off gzip file in gztack()
  *                      - Use deflatePrime() instead of adding empty blocks
  *                      - Keep gzip file clean on appended file read errors
@@ -54,7 +54,7 @@
    block boundary to facilitate locating and modifying the last block bit at
    the start of the final deflate block.  Also whether using Z_BLOCK or not,
    another required feature of zlib 1.2.x is that inflate() now provides the
-   number of unusued bits in the last input byte used.  gzappend will not work
+   number of unused bits in the last input byte used.  gzappend will not work
    with versions of zlib earlier than 1.2.1.
 
    gzappend first decompresses the gzip file internally, discarding all but
@@ -96,12 +96,13 @@
 #define OUT_O_FLAGS O_RDWR
 #endif
 
+#define local static
 #define LGCHUNK 14
 #define CHUNK (1U << LGCHUNK)
 #define DSIZE 32768U
 
 /* print an error message and terminate with extreme prejudice */
-void bye(char *msg1, char *msg2)
+local void bye(char *msg1, char *msg2)
 {
     fprintf(stderr, "gzappend error: %s%s\n", msg1, msg2);
     exit(1);
@@ -110,7 +111,7 @@ void bye(char *msg1, char *msg2)
 /* return the greatest common divisor of a and b using Euclid's algorithm,
    modified to be fast when one argument much greater than the other, and
    coded to avoid unnecessary swapping */
-unsigned gcd(unsigned a, unsigned b)
+local unsigned gcd(unsigned a, unsigned b)
 {
     unsigned c;
 
@@ -131,7 +132,7 @@ unsigned gcd(unsigned a, unsigned b)
 }
 
 /* rotate list[0..len-1] left by rot positions, in place */
-void rotate(unsigned char *list, unsigned len, unsigned rot)
+local void rotate(unsigned char *list, unsigned len, unsigned rot)
 {
     unsigned char tmp;
     unsigned cycles;
@@ -183,12 +184,12 @@ typedef struct {
     int size;                   /* 1 << size is bytes in buf */
     unsigned left;              /* bytes available at next */
     unsigned char *buf;         /* buffer */
-    const unsigned char *next;    /* next byte in buffer */
+    z_const unsigned char *next;    /* next byte in buffer */
     char *name;                 /* file name for error messages */
 } file;
 
 /* reload buffer */
-int readin(file *in)
+local int readin(file *in)
 {
     int len;
 
@@ -200,7 +201,7 @@ int readin(file *in)
 }
 
 /* read from file in, exit if end-of-file */
-int readmore(file *in)
+local int readmore(file *in)
 {
     if (readin(in) == 0) bye("unexpected end of ", in->name);
     return 0;
@@ -210,7 +211,7 @@ int readmore(file *in)
                    in->left--, *(in->next)++)
 
 /* skip over n bytes of in */
-void skip(file *in, unsigned n)
+local void skip(file *in, unsigned n)
 {
     unsigned bypass;
 
@@ -243,7 +244,7 @@ unsigned long read4(file *in)
 }
 
 /* skip over gzip header */
-void gzheader(file *in)
+local void gzheader(file *in)
 {
     int flags;
     unsigned n;
@@ -267,7 +268,7 @@ void gzheader(file *in)
    continue compression of the data in the gzip file, and return a file
    descriptor pointing to where to write the compressed data -- the deflate
    stream is initialized to compress using level "level" */
-int gzscan(char *name, z_stream *strm, int level)
+local int gzscan(char *name, z_stream *strm, int level)
 {
     int ret, lastbit, left, full;
     unsigned have;
@@ -396,7 +397,7 @@ int gzscan(char *name, z_stream *strm, int level)
 
 /* append file "name" to gzip file gd using deflate stream strm -- if last
    is true, then finish off the deflate stream at the end */
-void gztack(char *name, int gd, z_stream *strm, int last)
+local void gztack(char *name, int gd, z_stream *strm, int last)
 {
     int fd, len, ret;
     unsigned left;
@@ -407,11 +408,8 @@ void gztack(char *name, int gd, z_stream *strm, int last)
     if (name != NULL) {
         fd = open(name, IN_O_FLAGS, 0);
         if (fd == -1)
-        {
-          fprintf (stderr, "gzappend warning: %s not found, skipping ...\n",
-            name);
-          return;
-        }
+            fprintf(stderr, "gzappend warning: %s not found, skipping ...\n",
+                    name);
     }
 
     /* allocate buffers */
