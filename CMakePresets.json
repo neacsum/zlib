@@ -1,0 +1,33 @@
+{
+  "version": 6,
+  "configurePresets":[
+    {
+      "name": "gcc",
+      "displayName": "gcc Compiler",
+      "binaryDir": "${sourceDir}/build"
+    }
+  ],
+
+  "buildPresets":[
+    {
+      "name": "gcc",
+      "configurePreset": "gcc"
+    }
+  ],
+
+  "workflowPresets":[
+    {
+      "name": "gcc",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "gcc"
+        },
+        {
+          "type": "build",
+          "name": "gcc"
+        }
+      ]
+    }
+  ]
+}
