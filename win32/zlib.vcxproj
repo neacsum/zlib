@@ -346,21 +346,21 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)adler32.c" />
-    <ClCompile Include="$(SolutionDir)compress.c" />
-    <ClCompile Include="$(SolutionDir)crc32.c" />
-    <ClCompile Include="$(SolutionDir)deflate.c" />
-    <ClCompile Include="$(SolutionDir)gzclose.c" />
-    <ClCompile Include="$(SolutionDir)gzlib.c" />
-    <ClCompile Include="$(SolutionDir)gzread.c" />
-    <ClCompile Include="$(SolutionDir)gzwrite.c" />
-    <ClCompile Include="$(SolutionDir)infback.c" />
-    <ClCompile Include="$(SolutionDir)inffast.c" />
-    <ClCompile Include="$(SolutionDir)inflate.c" />
-    <ClCompile Include="$(SolutionDir)inftrees.c" />
-    <ClCompile Include="$(SolutionDir)trees.c" />
-    <ClCompile Include="$(SolutionDir)uncompr.c" />
-    <ClCompile Include="$(SolutionDir)zutil.c" />
+    <ClCompile Include="$(SolutionDir)src/adler32.c" />
+    <ClCompile Include="$(SolutionDir)src/compress.c" />
+    <ClCompile Include="$(SolutionDir)src/crc32.c" />
+    <ClCompile Include="$(SolutionDir)src/deflate.c" />
+    <ClCompile Include="$(SolutionDir)src/gzclose.c" />
+    <ClCompile Include="$(SolutionDir)src/gzlib.c" />
+    <ClCompile Include="$(SolutionDir)src/gzread.c" />
+    <ClCompile Include="$(SolutionDir)src/gzwrite.c" />
+    <ClCompile Include="$(SolutionDir)src/infback.c" />
+    <ClCompile Include="$(SolutionDir)src/inffast.c" />
+    <ClCompile Include="$(SolutionDir)src/inflate.c" />
+    <ClCompile Include="$(SolutionDir)src/inftrees.c" />
+    <ClCompile Include="$(SolutionDir)src/trees.c" />
+    <ClCompile Include="$(SolutionDir)src/uncompr.c" />
+    <ClCompile Include="$(SolutionDir)src/zutil.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="zlib1.rc">
@@ -371,17 +371,17 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\crc32.h" />
-    <ClInclude Include="..\include\deflate.h" />
-    <ClInclude Include="..\include\gzguts.h" />
-    <ClInclude Include="..\include\inffast.h" />
-    <ClInclude Include="..\include\inffixed.h" />
-    <ClInclude Include="..\include\inflate.h" />
-    <ClInclude Include="..\include\inftrees.h" />
-    <ClInclude Include="..\include\trees.h" />
-    <ClInclude Include="..\include\zlib\zconf.h" />
-    <ClInclude Include="..\include\zlib\zlib.h" />
-    <ClInclude Include="..\include\zutil.h" />
+    <ClInclude Include="$(SolutionDir)include\crc32.h" />
+    <ClInclude Include="$(SolutionDir)include\deflate.h" />
+    <ClInclude Include="$(SolutionDir)include\gzguts.h" />
+    <ClInclude Include="$(SolutionDir)include\inffast.h" />
+    <ClInclude Include="$(SolutionDir)include\inffixed.h" />
+    <ClInclude Include="$(SolutionDir)include\inflate.h" />
+    <ClInclude Include="$(SolutionDir)include\inftrees.h" />
+    <ClInclude Include="$(SolutionDir)include\trees.h" />
+    <ClInclude Include="$(SolutionDir)include\zlib\zconf.h" />
+    <ClInclude Include="$(SolutionDir)include\zlib\zlib.h" />
+    <ClInclude Include="$(SolutionDir)include\zutil.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

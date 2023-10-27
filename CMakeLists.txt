@@ -106,22 +106,23 @@ set(ZLIB_PRIVATE_HDRS
     ${ZLIB_INCLUDE_DIR}/trees.h
     ${ZLIB_INCLUDE_DIR}/zutil.h
 )
+
 set(ZLIB_SRCS
-    adler32.c
-    compress.c
-    crc32.c
-    deflate.c
-    gzclose.c
-    gzlib.c
-    gzread.c
-    gzwrite.c
-    inflate.c
-    infback.c
-    inftrees.c
-    inffast.c
-    trees.c
-    uncompr.c
-    zutil.c
+    src/adler32.c
+    src/compress.c
+    src/crc32.c
+    src/deflate.c
+    src/gzclose.c
+    src/gzlib.c
+    src/gzread.c
+    src/gzwrite.c
+    src/inflate.c
+    src/infback.c
+    src/inftrees.c
+    src/inffast.c
+    src/trees.c
+    src/uncompr.c
+    src/zutil.c
 )
 
 if(NOT MINGW)
@@ -152,7 +153,11 @@ if(MINGW)
 endif(MINGW)
 
 add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+
 add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+set_target_properties (zlibstatic PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+
 set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
 set_target_properties(zlib PROPERTIES SOVERSION 1)
 
