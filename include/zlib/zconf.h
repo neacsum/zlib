@@ -536,9 +536,8 @@ typedef uLong FAR uLongf;
 #endif
 
 //Just for debugging
-#ifdef _DEBUG
+#if defined(_WIN32) && defined(_DEBUG)
 #define ZLIB_DEBUG
-#define verbose 0
 #endif
 
 #endif /* ZCONF_H */
