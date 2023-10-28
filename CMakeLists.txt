@@ -127,7 +127,7 @@ set(ZLIB_SRCS
 
 if(NOT MINGW)
     set(ZLIB_DLL_SRCS
-        win32/zlib1.rc # If present will override custom build rule below.
+        env/win/zlib1.rc # If present will override custom build rule below.
     )
 endif()
 
@@ -148,7 +148,7 @@ if(MINGW)
                             -I ${CMAKE_CURRENT_SOURCE_DIR}
                             -I ${CMAKE_CURRENT_BINARY_DIR}
                             -o ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj
-                            -i ${CMAKE_CURRENT_SOURCE_DIR}/win32/zlib1.rc)
+                            -i ${CMAKE_CURRENT_SOURCE_DIR}/env/win/zlib1.rc)
     set(ZLIB_DLL_SRCS ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj)
 endif(MINGW)
 
