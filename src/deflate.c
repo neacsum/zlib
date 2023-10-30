@@ -373,7 +373,12 @@ local void fill_window(deflate_state *s) {
 /*!
   Initializes the internal stream state for compression.
   
-  The fields zalloc, zfree and opaque must be initialized before by the caller.
+  \param strm pointrer to compressed stream state information
+              The fields z_stream::zalloc, z_stream::zfree and z_stream::opaque
+              must be initialized before by the caller.
+
+  \param level compression level.
+
   If zalloc and zfree are set to Z_NULL, deflateInit updates them to use default
   allocation functions.  total_in, total_out, adler, and msg are initialized.
 
@@ -386,9 +391,10 @@ local void fill_window(deflate_state *s) {
     deflateInit returns Z_OK if success, Z_MEM_ERROR if there was not enough
   memory, Z_STREAM_ERROR if level is not a valid compression level, or
   Z_VERSION_ERROR if the zlib library version (zlib_version) is incompatible
-  with the version assumed by the caller (ZLIB_VERSION).  msg is set to null
-  if there is no error message.  deflateInit does not perform any compression:
-  this will be done by deflate().
+  with the version assumed by the caller (ZLIB_VERSION).
+  
+  \note msg is set to null if there is no error message. deflateInit() does
+  not perform any compression; this will be done by deflate().
 */
 int ZEXPORT deflateInit_(z_streamp strm, int level, const char *version,
                          int stream_size) {
@@ -464,11 +470,12 @@ int ZEXPORT deflateInit_(z_streamp strm, int level, const char *version,
   Z_FIXED prevents the use of dynamic Huffman codes, allowing for a simpler
   decoder for special applications.
 
-  \return Z_OK if success
-  \return Z_MEM_ERROR if there was not enough memory
-  \return Z_STREAM_ERROR if any parameter is invalid (such as an invalid method)
-  \return Z_VERSION_ERROR if the zlib library version (zlib_version) is
-  incompatible with the version assumed by the caller (ZLIB_VERSION).
+  \return Z_OK              if success
+  \return Z_MEM_ERROR       if there was not enough memory
+  \return Z_STREAM_ERROR    if any parameter is invalid (such as an invalid method)
+  \return Z_VERSION_ERROR   if the zlib library version (zlib_version) is
+                            incompatible with the version assumed by the caller
+                            (ZLIB_VERSION).
   
   \note msg is set to null if there is no error message.  deflateInit2 does not perform any
   compression: this will be done by deflate().
