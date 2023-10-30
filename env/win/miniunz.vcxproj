@@ -190,8 +190,8 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)contrib\minizip\iowin32.c" />
     <ClCompile Include="$(SolutionDir)contrib\minizip\miniunz.c" />
-    <ClCompile Include="..\contrib\minizip\ioapi.c" />
-    <ClCompile Include="..\contrib\minizip\unzip.c" />
+    <ClCompile Include="$(SolutionDir)contrib\minizip\ioapi.c" />
+    <ClCompile Include="$(SolutionDir)contrib\minizip\unzip.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
