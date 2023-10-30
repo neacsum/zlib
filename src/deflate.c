@@ -1,6 +1,8 @@
-/* deflate.c -- compress data using the deflation algorithm
- * Copyright (C) 1995-2023 Jean-loup Gailly and Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h
+/*!
+  \file deflate.c -- compress data using the deflation algorithm
+
+  Copyright (C) 1995-2023 Jean-loup Gailly and Mark Adler
+  For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 /*
@@ -51,14 +53,14 @@
 
 #include "deflate.h"
 
-const char deflate_copyright[] =
-   " deflate 1.3.0.1 Copyright 1995-2023 Jean-loup Gailly and Mark Adler ";
-/*
+/*!
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
   include such an acknowledgment, I would appreciate that you keep this
   copyright string in the executable of your product.
  */
+const char deflate_copyright[] =
+   " deflate 1.3.0.1 Copyright 1995-2023 Jean-loup Gailly and Mark Adler ";
 
 typedef enum {
     need_more,      /* block not completed, need more input or more output */
@@ -551,6 +553,46 @@ local int deflateStateCheck(z_streamp strm) {
 }
 
 /* ========================================================================= */
+/*!
+     Initializes the compression dictionary from the given byte sequence
+   without producing any compressed output.  When using the zlib format, this
+   function must be called immediately after deflateInit, deflateInit2 or
+   deflateReset, and before any call of deflate.  When doing raw deflate, this
+   function must be called either before any call of deflate, or immediately
+   after the completion of a deflate block, i.e. after all input has been
+   consumed and all output has been delivered when using any of the flush
+   options Z_BLOCK, Z_PARTIAL_FLUSH, Z_SYNC_FLUSH, or Z_FULL_FLUSH.  The
+   compressor and decompressor must use exactly the same dictionary (see
+   inflateSetDictionary).
+
+     The dictionary should consist of strings (byte sequences) that are likely
+   to be encountered later in the data to be compressed, with the most commonly
+   used strings preferably put towards the end of the dictionary.  Using a
+   dictionary is most useful when the data to be compressed is short and can be
+   predicted with good accuracy; the data can then be compressed better than
+   with the default empty dictionary.
+
+     Depending on the size of the compression data structures selected by
+   deflateInit or deflateInit2, a part of the dictionary may in effect be
+   discarded, for example if the dictionary is larger than the window size
+   provided in deflateInit or deflateInit2.  Thus the strings most likely to be
+   useful should be put at the end of the dictionary, not at the front.  In
+   addition, the current implementation of deflate will use at most the window
+   size minus 262 bytes of the provided dictionary.
+
+     Upon return of this function, strm->adler is set to the Adler-32 value
+   of the dictionary; the decompressor may later use this value to determine
+   which dictionary has been used by the compressor.  (The Adler-32 value
+   applies to the whole dictionary even if only a subset of the dictionary is
+   actually used by the compressor.) If a raw deflate was requested, then the
+   Adler-32 value is not computed and strm->adler is not set.
+
+     deflateSetDictionary returns Z_OK if success, or Z_STREAM_ERROR if a
+   parameter is invalid (e.g.  dictionary being Z_NULL) or the stream state is
+   inconsistent (for example if deflate has already been called for this stream
+   or if not at a block boundary for raw deflate).  deflateSetDictionary does
+   not perform any compression: this will be done by deflate().
+*/
 int ZEXPORT deflateSetDictionary(z_streamp strm, const Bytef *dictionary,
                                  uInt  dictLength) {
     deflate_state *s;
@@ -617,6 +659,25 @@ int ZEXPORT deflateSetDictionary(z_streamp strm, const Bytef *dictionary,
 }
 
 /* ========================================================================= */
+/*!
+     Returns the sliding dictionary being maintained by deflate.  dictLength is
+   set to the number of bytes in the dictionary, and that many bytes are copied
+   to dictionary.  dictionary must have enough space, where 32768 bytes is
+   always enough.  If deflateGetDictionary() is called with dictionary equal to
+   Z_NULL, then only the dictionary length is returned, and nothing is copied.
+   Similarly, if dictLength is Z_NULL, then it is not set.
+
+     deflateGetDictionary() may return a length less than the window size, even
+   when more than the window size in input has been provided. It may return up
+   to 258 bytes less in that case, due to how zlib's implementation of deflate
+   manages the sliding window and lookahead for matches, where matches can be
+   up to 258 bytes long. If the application needs the last window-size bytes of
+   input, then that would need to be saved by the application outside of zlib.
+
+   \return `Z_OK` on success, or `Z_STREAM_ERROR` if the
+   stream state is inconsistent.
+*/
+
 int ZEXPORT deflateGetDictionary(z_streamp strm, Bytef *dictionary,
                                  uInt *dictLength) {
     deflate_state *s;
@@ -696,6 +757,15 @@ local void lm_init(deflate_state *s) {
 }
 
 /* ========================================================================= */
+/*!
+     This function is equivalent to deflateEnd followed by deflateInit, but
+   does not free and reallocate the internal compression state.  The stream
+   will leave the compression level and any other attributes that may have been
+   set unchanged.  total_in, total_out, adler, and msg are initialized.
+
+     deflateReset returns Z_OK if success, or Z_STREAM_ERROR if the source
+   stream state was inconsistent (such as zalloc or state being Z_NULL).
+*/
 int ZEXPORT deflateReset(z_streamp strm) {
     int ret;
 
@@ -706,6 +776,28 @@ int ZEXPORT deflateReset(z_streamp strm) {
 }
 
 /* ========================================================================= */
+/*!
+   Provides gzip header information for when a gzip stream is requested by deflateInit2(). 
+   
+   deflateSetHeader() may be called after deflateInit2() or deflateReset() and before the first call of
+   deflate().  The text, time, os, extra field, name, and comment information
+   in the provided gz_header structure are written to the gzip header (xflag is
+   ignored -- the extra flags are set according to the compression level).  The
+   caller must assure that, if not Z_NULL, name and comment are terminated with
+   a zero byte, and that if extra is not Z_NULL, that extra_len bytes are
+   available there.  If hcrc is true, a gzip header crc is included.  Note that
+   the current versions of the command-line version of gzip (up through version
+   1.3.x) do not support header crc's, and will report that it is a "multi-part
+   gzip file" and give up.
+
+     If deflateSetHeader is not used, the default gzip header has text false,
+   the time set to zero, and os set to the current operating system, with no
+   extra, name, or comment fields.  The gzip header is returned to the default
+   state by deflateReset().
+
+     deflateSetHeader returns Z_OK if success, or Z_STREAM_ERROR if the source
+   stream state was inconsistent.
+*/
 int ZEXPORT deflateSetHeader(z_streamp strm, gz_headerp head) {
     if (deflateStateCheck(strm) || strm->state->wrap != 2)
         return Z_STREAM_ERROR;
@@ -714,6 +806,18 @@ int ZEXPORT deflateSetHeader(z_streamp strm, gz_headerp head) {
 }
 
 /* ========================================================================= */
+/*!
+   Returns the number of bytes and bits of output that have been generated,
+   but not yet provided in the available output.
+   
+   The bytes not provided would be due to the available output space having being consumed.
+   The number of bits of output not provided are between 0 and 7, where they
+   await more bits to join them in order to fill out a full byte.  If pending
+   or bits are Z_NULL, then those values are not set.
+
+   \return Z_OK if success, or Z_STREAM_ERROR if the source
+   stream state was inconsistent.
+ */
 int ZEXPORT deflatePending(z_streamp strm, unsigned *pending, int *bits) {
     if (deflateStateCheck(strm)) return Z_STREAM_ERROR;
     if (pending != Z_NULL)
@@ -724,6 +828,20 @@ int ZEXPORT deflatePending(z_streamp strm, unsigned *pending, int *bits) {
 }
 
 /* ========================================================================= */
+/*!
+   Inserts bits in the deflate output stream.
+   
+   The intent is that this function is used to start off the deflate output with the bits
+   leftover from a previous deflate stream when appending to it.  As such, this
+   function can only be used for raw deflate, and must be used before the first
+   deflate() call after a deflateInit2() or deflateReset().  bits must be less
+   than or equal to 16, and that many of the least significant bits of value
+   will be inserted in the output.
+
+     deflatePrime returns Z_OK if success, Z_BUF_ERROR if there was not enough
+   room in the internal buffer to insert the bits, or Z_STREAM_ERROR if the
+   source stream state was inconsistent.
+*/
 int ZEXPORT deflatePrime(z_streamp strm, int bits, int value) {
     deflate_state *s;
     int put;
@@ -753,6 +871,40 @@ int ZEXPORT deflatePrime(z_streamp strm, int bits, int value) {
 }
 
 /* ========================================================================= */
+/*!
+   Dynamically update the compression level and compression strategy.  The
+   interpretation of level and strategy is as in deflateInit2().  This can be
+   used to switch between compression and straight copy of the input data, or
+   to switch to a different kind of input data requiring a different strategy.
+   If the compression approach (which is a function of the level) or the
+   strategy is changed, and if there have been any deflate() calls since the
+   state was initialized or reset, then the input available so far is
+   compressed with the old level and strategy using deflate(strm, Z_BLOCK).
+   There are three approaches for the compression levels 0, 1..3, and 4..9
+   respectively.  The new level and strategy will take effect at the next call
+   of deflate().
+
+     If a deflate(strm, Z_BLOCK) is performed by deflateParams(), and it does
+   not have enough output space to complete, then the parameter change will not
+   take effect.  In this case, deflateParams() can be called again with the
+   same parameters and more output space to try again.
+
+     In order to assure a change in the parameters on the first try, the
+   deflate stream should be flushed using deflate() with Z_BLOCK or other flush
+   request until strm.avail_out is not zero, before calling deflateParams().
+   Then no more input data should be provided before the deflateParams() call.
+   If this is done, the old level and strategy will be applied to the data
+   compressed before deflateParams(), and the new level and strategy will be
+   applied to the data compressed after deflateParams().
+
+     deflateParams returns Z_OK on success, Z_STREAM_ERROR if the source stream
+   state was inconsistent or if a parameter was invalid, or Z_BUF_ERROR if
+   there was not enough output space to complete the compression of the
+   available input data before a change in the strategy or approach.  Note that
+   in the case of a Z_BUF_ERROR, the parameters are not changed.  A return
+   value of Z_BUF_ERROR is not fatal, in which case deflateParams() can be
+   retried with more output space.
+*/
 int ZEXPORT deflateParams(z_streamp strm, int level, int strategy) {
     deflate_state *s;
     compress_func func;
@@ -798,6 +950,17 @@ int ZEXPORT deflateParams(z_streamp strm, int level, int strategy) {
 }
 
 /* ========================================================================= */
+/*!
+  Fine tune deflate's internal compression parameters.  This should only be
+  used by someone who understands the algorithm used by zlib's deflate for
+  searching for the best matching string, and even then only by the most
+  fanatic optimizer trying to squeeze out the last compressed bit for their
+  specific input data.  Read the deflate.c source code for the meaning of the
+  max_lazy, good_length, nice_length, and max_chain parameters.
+
+  deflateTune() can be called after deflateInit() or deflateInit2(), and
+  returns Z_OK on success, or Z_STREAM_ERROR for an invalid deflate stream.
+ */
 int ZEXPORT deflateTune(z_streamp strm, int good_length, int max_lazy,
                         int nice_length, int max_chain) {
     deflate_state *s;
@@ -811,29 +974,41 @@ int ZEXPORT deflateTune(z_streamp strm, int good_length, int max_lazy,
     return Z_OK;
 }
 
-/* =========================================================================
- * For the default windowBits of 15 and memLevel of 8, this function returns a
- * close to exact, as well as small, upper bound on the compressed size. This
- * is an expansion of ~0.03%, plus a small constant.
- *
- * For any setting other than those defaults for windowBits and memLevel, one
- * of two worst case bounds is returned. This is at most an expansion of ~4% or
- * ~13%, plus a small constant.
- *
- * Both the 0.03% and 4% derive from the overhead of stored blocks. The first
- * one is for stored blocks of 16383 bytes (memLevel == 8), whereas the second
- * is for stored blocks of 127 bytes (the worst case memLevel == 1). The
- * expansion results from five bytes of header for each stored block.
- *
- * The larger expansion of 13% results from a window size less than or equal to
- * the symbols buffer size (windowBits <= memLevel + 7). In that case some of
- * the data being compressed may have slid out of the sliding window, impeding
- * a stored block from being emitted. Then the only choice is a fixed or
- * dynamic block, where a fixed block limits the maximum expansion to 9 bits
- * per 8-bit byte, plus 10 bits for every block. The smallest block size for
- * which this can occur is 255 (memLevel == 2).
- *
- * Shifts are used to approximate divisions, for speed.
+/* ========================================================================= */
+/*!
+  Returns an upper bound on the compressed size after
+  deflation of sourceLen bytes.  It must be called after deflateInit() or
+  deflateInit2(), and after deflateSetHeader(), if used.  This would be used
+  to allocate an output buffer for deflation in a single pass, and so would be
+  called before deflate().  If that first deflate() call is provided the
+  sourceLen input bytes, an output buffer allocated to the size returned by
+  deflateBound(), and the flush value Z_FINISH, then deflate() is guaranteed
+  to return Z_STREAM_END.  Note that it is possible for the compressed size to
+  be larger than the value returned by deflateBound() if flush options other
+  than Z_FINISH or Z_NO_FLUSH are used.
+
+  For the default windowBits of 15 and memLevel of 8, this function returns a
+  close to exact, as well as small, upper bound on the compressed size. This
+  is an expansion of ~0.03%, plus a small constant.
+ 
+  For any setting other than those defaults for windowBits and memLevel, one
+  of two worst case bounds is returned. This is at most an expansion of ~4% or
+  ~13%, plus a small constant.
+ 
+  Both the 0.03% and 4% derive from the overhead of stored blocks. The first
+  one is for stored blocks of 16383 bytes (memLevel == 8), whereas the second
+  is for stored blocks of 127 bytes (the worst case memLevel == 1). The
+  expansion results from five bytes of header for each stored block.
+ 
+  The larger expansion of 13% results from a window size less than or equal to
+  the symbols buffer size (windowBits <= memLevel + 7). In that case some of
+  the data being compressed may have slid out of the sliding window, impeding
+  a stored block from being emitted. Then the only choice is a fixed or
+  dynamic block, where a fixed block limits the maximum expansion to 9 bits
+  per 8-bit byte, plus 10 bits for every block. The smallest block size for
+  which this can occur is 255 (memLevel == 2).
+ 
+  Shifts are used to approximate divisions, for speed.
  */
 uLong ZEXPORT deflateBound(z_streamp strm, uLong sourceLen) {
     deflate_state *s;
@@ -947,6 +1122,116 @@ local void flush_pending(z_streamp strm) {
     } while (0)
 
 /* ========================================================================= */
+/*!
+  deflate compresses as much data as possible, and stops when the input
+  buffer becomes empty or the output buffer becomes full.  It may introduce
+  some output latency (reading input without producing any output) except when
+  forced to flush.
+
+  The detailed semantics are as follows.  deflate performs one or both of the
+  following actions:
+
+  - Compress more input starting at next_in and update next_in and avail_in
+    accordingly.  If not all input can be processed (because there is not
+    enough room in the output buffer), next_in and avail_in are updated and
+    processing will resume at this point for the next call of deflate().
+
+  - Generate more output starting at next_out and update next_out and avail_out
+    accordingly.  This action is forced if the parameter flush is non zero.
+    Forcing flush frequently degrades the compression ratio, so this parameter
+    should be set only when necessary.  Some output may be provided even if
+    flush is zero.
+
+  Before the call of deflate(), the application should ensure that at least
+  one of the actions is possible, by providing more input and/or consuming more
+  output, and updating avail_in or avail_out accordingly; avail_out should
+  never be zero before the call.  The application can consume the compressed
+  output when it wants, for example when the output buffer is full (avail_out
+  == 0), or after each call of deflate().  If deflate returns Z_OK and with
+  zero avail_out, it must be called again after making room in the output
+  buffer because there might be more output pending. See deflatePending(),
+  which can be used if desired to determine whether or not there is more output
+  in that case.
+
+  Normally the parameter flush is set to Z_NO_FLUSH, which allows deflate to
+  decide how much data to accumulate before producing output, in order to
+  maximize compression.
+
+  If the parameter flush is set to Z_SYNC_FLUSH, all pending output is
+  flushed to the output buffer and the output is aligned on a byte boundary, so
+  that the decompressor can get all input data available so far.  (In
+  particular avail_in is zero after the call if enough output space has been
+  provided before the call.) Flushing may degrade compression for some
+  compression algorithms and so it should be used only when necessary.  This
+  completes the current deflate block and follows it with an empty stored block
+  that is three bits plus filler bits to the next byte, followed by four bytes
+  (00 00 ff ff).
+
+  If flush is set to Z_PARTIAL_FLUSH, all pending output is flushed to the
+  output buffer, but the output is not aligned to a byte boundary.  All of the
+  input data so far will be available to the decompressor, as for Z_SYNC_FLUSH.
+  This completes the current deflate block and follows it with an empty fixed
+  codes block that is 10 bits long.  This assures that enough bytes are output
+  in order for the decompressor to finish the block before the empty fixed
+  codes block.
+
+  If flush is set to Z_BLOCK, a deflate block is completed and emitted, as
+  for Z_SYNC_FLUSH, but the output is not aligned on a byte boundary, and up to
+  seven bits of the current block are held to be written as the next byte after
+  the next deflate block is completed.  In this case, the decompressor may not
+  be provided enough bits at this point in order to complete decompression of
+  the data provided so far to the compressor.  It may need to wait for the next
+  block to be emitted.  This is for advanced applications that need to control
+  the emission of deflate blocks.
+
+    If flush is set to Z_FULL_FLUSH, all output is flushed as with
+  Z_SYNC_FLUSH, and the compression state is reset so that decompression can
+  restart from this point if previous compressed data has been damaged or if
+  random access is desired.  Using Z_FULL_FLUSH too often can seriously degrade
+  compression.
+
+    If deflate returns with avail_out == 0, this function must be called again
+  with the same value of the flush parameter and more output space (updated
+  avail_out), until the flush is complete (deflate returns with non-zero
+  avail_out).  In the case of a Z_FULL_FLUSH or Z_SYNC_FLUSH, make sure that
+  avail_out is greater than six when the flush marker begins, in order to avoid
+  repeated flush markers upon calling deflate() again when avail_out == 0.
+
+    If the parameter flush is set to Z_FINISH, pending input is processed,
+  pending output is flushed and deflate returns with Z_STREAM_END if there was
+  enough output space.  If deflate returns with Z_OK or Z_BUF_ERROR, this
+  function must be called again with Z_FINISH and more output space (updated
+  avail_out) but no more input data, until it returns with Z_STREAM_END or an
+  error.  After deflate has returned Z_STREAM_END, the only possible operations
+  on the stream are deflateReset or deflateEnd.
+
+    Z_FINISH can be used in the first deflate call after deflateInit if all the
+  compression is to be done in a single step.  In order to complete in one
+  call, avail_out must be at least the value returned by deflateBound (see
+  below).  Then deflate is guaranteed to return Z_STREAM_END.  If not enough
+  output space is provided, deflate will not return Z_STREAM_END, and it must
+  be called again as described above.
+
+    deflate() sets strm->adler to the Adler-32 checksum of all input read
+  so far (that is, total_in bytes).  If a gzip stream is being generated, then
+  strm->adler will be the CRC-32 checksum of the input read so far.  (See
+  deflateInit2 below.)
+
+    deflate() may update strm->data_type if it can make a good guess about
+  the input data type (Z_BINARY or Z_TEXT).  If in doubt, the data is
+  considered binary.  This field is only for information purposes and does not
+  affect the compression algorithm in any manner.
+
+    deflate() returns Z_OK if some progress has been made (more input
+  processed or more output produced), Z_STREAM_END if all input has been
+  consumed and all output has been produced (only when flush is set to
+  Z_FINISH), Z_STREAM_ERROR if the stream state was inconsistent (for example
+  if next_in or next_out was Z_NULL or the state was inadvertently written over
+  by the application), or Z_BUF_ERROR if no progress is possible (for example
+  avail_in or avail_out was zero).  Note that Z_BUF_ERROR is not fatal, and
+  deflate() can be called again with more input and more output space to
+  continue compressing.
+*/
 int ZEXPORT deflate(z_streamp strm, int flush) {
     int old_flush; /* value of flush param for previous deflate call */
     deflate_state *s;
@@ -1259,6 +1544,17 @@ int ZEXPORT deflate(z_streamp strm, int flush) {
 }
 
 /* ========================================================================= */
+/*!
+     All dynamically allocated data structures for this stream are freed.
+   This function discards any unprocessed input and does not flush any pending
+   output.
+
+     deflateEnd returns Z_OK if success, Z_STREAM_ERROR if the
+   stream state was inconsistent, Z_DATA_ERROR if the stream was freed
+   prematurely (some input or output was discarded).  In the error case, msg
+   may be set but then points to a static string (which must not be
+   deallocated).
+*/
 int ZEXPORT deflateEnd(z_streamp strm) {
     int status;
 
@@ -1278,12 +1574,26 @@ int ZEXPORT deflateEnd(z_streamp strm) {
     return status == BUSY_STATE ? Z_DATA_ERROR : Z_OK;
 }
 
-/* =========================================================================
- * Copy the source state to the destination state.
- * To simplify the source, this is not supported for 16-bit MSDOS (which
- * doesn't have enough memory anyway to duplicate compression states).
- */
-int ZEXPORT deflateCopy(z_streamp dest, z_streamp source) {
+/* ========================================================================= */
+/*!
+  Sets the destination stream as a complete copy of the source stream.
+
+  This function can be useful when several compression strategies will be
+  tried, for example when there are several ways of pre-processing the input
+  data with a filter.  The streams that will be discarded should then be freed
+  by calling deflateEnd.  Note that deflateCopy duplicates the internal
+  compression state which can be quite large, so this strategy is slow and can
+  consume lots of memory.
+
+  To simplify the source, this is not supported for 16-bit MSDOS (which
+  doesn't have enough memory anyway to duplicate compression states).
+
+  \return `Z_OK` if success, `Z_MEM_ERROR` if there was not
+  enough memory, `Z_STREAM_ERROR` if the source stream state was inconsistent
+  (such as zalloc being `Z_NULL`).  msg is left unchanged in both source and
+  destination.
+*/
+int ZEXPORT deflateCopy (z_streamp dest, z_streamp source) {
 #ifdef MAXSEG_64K
     return Z_STREAM_ERROR;
 #else

@@ -1,7 +1,9 @@
-/* gzwrite.c -- zlib functions for writing gzip files
- * Copyright (C) 2004-2019 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h
- */
+/*!
+  \file gzwrite.c -- zlib functions for writing gzip files
+
+  Copyright (C) 2004-2019 Mark Adler
+  For conditions of distribution and use, see copyright notice in zlib.h
+*/
 
 #include "gzguts.h"
 
@@ -233,7 +235,11 @@ local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
     return put;
 }
 
-/* -- see zlib.h -- */
+/*!
+   Compress and write the len uncompressed bytes at buf to file.
+
+   \return number of uncompressed bytes written or 0 in case of error.
+*/
 int ZEXPORT gzwrite(gzFile file, voidpc buf, unsigned len) {
     gz_statep state;
 
@@ -257,7 +263,17 @@ int ZEXPORT gzwrite(gzFile file, voidpc buf, unsigned len) {
     return (int)gz_write(state, buf, len);
 }
 
-/* -- see zlib.h -- */
+/*!
+  Compress and write nitems items of size size from buf to file, duplicating
+  the interface of stdio's fwrite(), with size_t request and return types.  If
+  the library defines size_t, then z_size_t is identical to size_t.  If not,
+  then z_size_t is an unsigned integer type that can contain a pointer.
+
+  \return Number of full items written of size size, or zero
+  if there was an error.  If the multiplication of size and nitems overflows,
+  i.e. the product does not fit in a z_size_t, then nothing is written, zero
+  is returned, and the error state is set to Z_STREAM_ERROR.
+*/
 z_size_t ZEXPORT gzfwrite(voidpc buf, z_size_t size, z_size_t nitems,
                           gzFile file) {
     z_size_t len;
@@ -283,7 +299,11 @@ z_size_t ZEXPORT gzfwrite(voidpc buf, z_size_t size, z_size_t nitems,
     return len ? gz_write(state, buf, len) / size : 0;
 }
 
-/* -- see zlib.h -- */
+/*!
+  Compress and write c, converted to an unsigned char, into file.
+  
+  \return the value that was written, or -1 in case of error.
+*/
 int ZEXPORT gzputc(gzFile file, int c) {
     unsigned have;
     unsigned char buf[1];
@@ -328,7 +348,12 @@ int ZEXPORT gzputc(gzFile file, int c) {
     return c & 0xff;
 }
 
-/* -- see zlib.h -- */
+/*!
+  Compress and write the given null-terminated string s to file, excluding
+  the terminating null character.
+
+  \return number of characters written, or -1 in case of error.
+*/
 int ZEXPORT gzputs(gzFile file, const char *s) {
     z_size_t len, put;
     gz_statep state;
@@ -427,6 +452,20 @@ int ZEXPORTVA gzvprintf(gzFile file, const char *format, va_list va) {
     return len;
 }
 
+/*!
+   Convert, format, compress, and write the arguments (...) to file under
+   control of the string format, as in fprintf.
+   
+   gzprintf returns the number of uncompressed bytes actually written, or a negative zlib error code in case
+   of error.  The number of uncompressed bytes written is limited to 8191, or
+   one less than the buffer size given to gzbuffer().  The caller should assure
+   that this limit is not exceeded.  If it is exceeded, then gzprintf() will
+   return an error (0) with nothing written.  In this case, there may also be a
+   buffer overflow with unpredictable consequences, which is possible only if
+   zlib was compiled with the insecure functions sprintf() or vsprintf(),
+   because the secure snprintf() or vsnprintf() functions were not available.
+   This can be determined using zlibCompileFlags().
+*/
 int ZEXPORTVA gzprintf(gzFile file, const char *format, ...) {
     va_list va;
     int ret;
@@ -524,7 +563,23 @@ int ZEXPORTVA gzprintf(gzFile file, const char *format, int a1, int a2, int a3,
 
 #endif
 
-/* -- see zlib.h -- */
+/*!
+  Flush all pending output to file.
+  
+  The parameter flush is as in the deflate() function.
+  
+  \return error number (see function gzerror below).
+  
+  gzflush is only permitted when writing.
+
+  If the flush parameter is Z_FINISH, the remaining data is written and the
+  gzip stream is completed in the output.  If gzwrite() is called again, a new
+  gzip stream will be started in the output.  gzread() is able to read such
+  concatenated gzip streams.
+
+  gzflush should be called only when strictly necessary because it will
+  degrade compression if called too often.
+*/
 int ZEXPORT gzflush(gzFile file, int flush) {
     gz_statep state;
 
@@ -553,7 +608,16 @@ int ZEXPORT gzflush(gzFile file, int flush) {
     return state->err;
 }
 
-/* -- see zlib.h -- */
+/*!
+  Dynamically update the compression level and strategy for file.  See the
+  description of deflateInit2 for the meaning of these parameters. Previously
+  provided data is flushed before applying the parameter changes.
+
+  \return Z_OK if success
+  \return Z_STREAM_ERROR if the file was not opened for writing
+  \return Z_ERRNO if there is an error writing the flushed data
+  \return Z_MEM_ERROR if there is a memory allocation error
+*/
 int ZEXPORT gzsetparams(gzFile file, int level, int strategy) {
     gz_statep state;
     z_streamp strm;
@@ -591,7 +655,16 @@ int ZEXPORT gzsetparams(gzFile file, int level, int strategy) {
     return Z_OK;
 }
 
-/* -- see zlib.h -- */
+/*!
+  Same as gzclose(), but gzclose_r() is only for use when reading, and
+  gzclose_w() is only for use when writing or appending.
+
+  The advantage to using these instead of gzclose() is that they avoid linking in zlib
+  compression or decompression code that is not used when only reading or only
+  writing respectively.  If gzclose() is used, then both compression and
+  decompression code will be included the application when linking to a static
+  zlib library.
+*/
 int ZEXPORT gzclose_w(gzFile file) {
     int ret = Z_OK;
     gz_statep state;

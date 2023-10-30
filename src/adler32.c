@@ -1,7 +1,9 @@
-/* adler32.c -- compute the Adler-32 checksum of a data stream
- * Copyright (C) 1995-2011, 2016 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h
- */
+/*!
+  \file adler32.c -- compute the Adler-32 checksum of a data stream
+
+  Copyright (C) 1995-2011, 2016 Mark Adler
+  For conditions of distribution and use, see copyright notice in zlib.h
+*/
 
 /* @(#) $Id$ */
 
@@ -58,6 +60,10 @@
 #endif
 
 /* ========================================================================= */
+/*!
+   Same as adler32(), but with a size_t length.
+*/
+
 uLong ZEXPORT adler32_z(uLong adler, const Bytef *buf, z_size_t len) {
     unsigned long sum2;
     unsigned n;
@@ -125,6 +131,25 @@ uLong ZEXPORT adler32_z(uLong adler, const Bytef *buf, z_size_t len) {
 }
 
 /* ========================================================================= */
+/*!
+  Update a running Adler-32 checksum with the bytes buf[0..len-1] and
+  return the updated checksum. An Adler-32 value is in the range of a 32-bit
+  unsigned integer. If buf is Z_NULL, this function returns the required
+  initial value for the checksum.
+
+  An Adler-32 checksum is almost as reliable as a CRC-32 but can be computed
+  much faster.
+
+  Usage example:
+```C
+    uLong adler = adler32(0L, Z_NULL, 0);
+
+    while (read_buffer(buffer, length) != EOF) {
+      adler = adler32(adler, buffer, length);
+    }
+    if (adler != original_adler) error();
+```
+*/
 uLong ZEXPORT adler32(uLong adler, const Bytef *buf, uInt len) {
     return adler32_z(adler, buf, len);
 }

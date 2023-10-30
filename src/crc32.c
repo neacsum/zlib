@@ -1,11 +1,13 @@
-/* crc32.c -- compute the CRC-32 of a data stream
- * Copyright (C) 1995-2022 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h
- *
- * This interleaved implementation of a CRC makes use of pipelined multiple
- * arithmetic-logic units, commonly found in modern CPU cores. It is due to
- * Kadatch and Jenkins (2010). See doc/crc-doc.1.0.pdf in this distribution.
- */
+/*!
+  \file crc32.c -- compute the CRC-32 of a data stream
+
+  Copyright (C) 1995-2022 Mark Adler
+  For conditions of distribution and use, see copyright notice in zlib.h
+ 
+  This interleaved implementation of a CRC makes use of pipelined multiple
+  arithmetic-logic units, commonly found in modern CPU cores. It is due to
+  Kadatch and Jenkins (2010). See doc/crc-doc.1.0.pdf in this distribution.
+*/
 
 /* @(#) $Id$ */
 
@@ -691,6 +693,9 @@ local z_word_t crc_word_big(z_word_t data) {
 #endif
 
 /* ========================================================================= */
+/*!
+  Same as crc32(), but with a size_t length.
+*/
 unsigned long ZEXPORT crc32_z(unsigned long crc, const unsigned char FAR *buf,
                               z_size_t len) {
     /* Return initial CRC, if requested. */
@@ -1012,6 +1017,24 @@ unsigned long ZEXPORT crc32_z(unsigned long crc, const unsigned char FAR *buf,
 #endif
 
 /* ========================================================================= */
+/*!
+   Update a running CRC-32 with the bytes buf[0..len-1] and return the updated CRC-32.
+     
+   A CRC-32 value is in the range of a 32-bit unsigned integer.
+   If buf is Z_NULL, this function returns the required initial value for the
+   crc. Pre- and post-conditioning (one's complement) is performed within this
+   function so it shouldn't be done by the application.
+
+   Usage example:
+```C
+     uLong crc = crc32(0L, Z_NULL, 0);
+
+     while (read_buffer(buffer, length) != EOF) {
+       crc = crc32(crc, buffer, length);
+     }
+     if (crc != original_crc) error();
+```
+*/
 unsigned long ZEXPORT crc32(unsigned long crc, const unsigned char FAR *buf,
                             uInt len) {
     return crc32_z(crc, buf, len);
@@ -1044,6 +1067,12 @@ uLong ZEXPORT crc32_combine_gen(z_off_t len2) {
 }
 
 /* ========================================================================= */
+/*!
+  Give the same result as crc32_combine(), using op in place of len2.
+  
+  op is is generated from len2 by crc32_combine_gen(). This will be faster than
+  crc32_combine() if the generated op is used more than once.
+*/
 uLong ZEXPORT crc32_combine_op(uLong crc1, uLong crc2, uLong op) {
     return multmodp(op, crc1) ^ (crc2 & 0xffffffff);
 }

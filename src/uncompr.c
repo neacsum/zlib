@@ -1,15 +1,21 @@
-/* uncompr.c -- decompress a memory buffer
- * Copyright (C) 1995-2003, 2010, 2014, 2016 Jean-loup Gailly, Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h
- */
+/*! \file uncompr.c -- decompress a memory buffer
+
+  Copyright (C) 1995-2003, 2010, 2014, 2016 Jean-loup Gailly, Mark Adler
+  For conditions of distribution and use, see copyright notice in zlib.h
+*/
 
 /* @(#) $Id$ */
 
 #define ZLIB_INTERNAL
 #include <zlib/zlib.h>
 
-/* ===========================================================================
-     Decompresses the source buffer into the destination buffer.  *sourceLen is
+/* =========================================================================== */
+/*!
+   Same as uncompress, except that sourceLen is a pointer, where the
+   length of the source is *sourceLen.  On return, *sourceLen is the number of
+   source bytes consumed.
+   
+   Decompresses the source buffer into the destination buffer.  *sourceLen is
    the byte length of the source buffer. Upon entry, *destLen is the total size
    of the destination buffer, which must be large enough to hold the entire
    uncompressed data. (The size of the uncompressed data must have been saved
@@ -45,12 +51,12 @@ int ZEXPORT uncompress2(Bytef *dest, uLongf *destLen, const Bytef *source,
     stream.next_in = (z_const Bytef *)source;
     stream.avail_in = 0;
     stream.zalloc = (alloc_func)0;
-    stream.zfree = (free_func)0;
+    stream.zfree = (free_func)0;err;
+
     stream.opaque = (voidpf)0;
 
     err = inflateInit(&stream);
-    if (err != Z_OK) return err;
-
+    if (err != Z_OK) return 
     stream.next_out = dest;
     stream.avail_out = 0;
 
@@ -79,6 +85,22 @@ int ZEXPORT uncompress2(Bytef *dest, uLongf *destLen, const Bytef *source,
            err;
 }
 
+/*!
+   Decompresses the source buffer into the destination buffer.
+   
+   sourceLen is the byte length of the source buffer.  Upon entry, destLen is the total size
+   of the destination buffer, which must be large enough to hold the entire
+   uncompressed data.  (The size of the uncompressed data must have been saved
+   previously by the compressor and transmitted to the decompressor by some
+   mechanism outside the scope of this compression library.) Upon exit, destLen
+   is the actual size of the uncompressed data.
+
+     uncompress returns Z_OK if success, Z_MEM_ERROR if there was not
+   enough memory, Z_BUF_ERROR if there was not enough room in the output
+   buffer, or Z_DATA_ERROR if the input data was corrupted or incomplete.  In
+   the case where there is not enough room, uncompress() will fill the output
+   buffer with the uncompressed data up to that point.
+*/
 int ZEXPORT uncompress(Bytef *dest, uLongf *destLen, const Bytef *source,
                        uLong sourceLen) {
     return uncompress2(dest, destLen, source, &sourceLen);
