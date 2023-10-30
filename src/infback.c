@@ -1,28 +1,49 @@
-/* infback.c -- inflate using a call-back interface
+/*!
+  \file infback.c -- inflate using a call-back interface
 
   Copyright (C) 1995-2022 Mark Adler
   For conditions of distribution and use, see copyright notice in zlib.h
-*/
 
-/*
-   This code is largely copied from inflate.c.  Normally either infback.o or
-   inflate.o would be linked into an application--not both.  The interface
-   with inffast.c is retained so that optimized assembler-coded versions of
-   inflate_fast() can be used with either inflate.c or infback.c.
- */
+  This code is largely copied from inflate.c.  Normally either infback.o or
+  inflate.o would be linked into an application--not both.  The interface
+  with inffast.c is retained so that optimized assembler-coded versions of
+  inflate_fast() can be used with either inflate.c or infback.c.
+*/
 
 #include "zutil.h"
 #include "inftrees.h"
 #include "inflate.h"
 #include "inffast.h"
 
-/*!
+/*
    strm provides memory allocation functions in zalloc and zfree, or
    Z_NULL to use the library memory allocation functions.
 
    windowBits is in the range 8..15, and window is a user-supplied
    window and output buffer that is 2**windowBits bytes.
- */
+*/
+
+/*!
+  Initialize the internal stream state for decompression using inflateBack()
+  calls.
+  
+  The fields zalloc, zfree and opaque in strm must be initialized
+  before the call.  If zalloc and zfree are Z_NULL, then the default library-
+  derived memory allocation routines are used.  windowBits is the base two
+  logarithm of the window size, in the range 8..15.  window is a caller
+  supplied buffer of that size.  Except for special applications where it is
+  assured that deflate was used with small window sizes, windowBits must be 15
+  and a 32K byte window must be supplied to be able to decompress general
+  deflate streams.
+
+  See inflateBack() for the usage of these routines.
+
+  \return Z_OK on success 
+  \return Z_STREAM_ERROR if any of the parameters are invalid
+  \return Z_MEM_ERROR if the internal state could not be allocated
+  \return Z_VERSION_ERROR if the version of the library does not match the 
+  version of the header file.
+*/
 int ZEXPORT inflateBackInit_ (z_streamp strm, int windowBits, unsigned char* window,
   const char* version, int stream_size)
 {
@@ -65,15 +86,15 @@ int ZEXPORT inflateBackInit_ (z_streamp strm, int windowBits, unsigned char* win
 }
 
 /*!
-   Return state with length and distance decoding tables and index sizes set to
-   fixed code decoding.  Normally this returns fixed tables from inffixed.h.
-   If BUILDFIXED is defined, then instead this routine builds the tables the
-   first time it's called, and returns those tables the first time and
-   thereafter.  This reduces the size of the code by about 2K bytes, in
-   exchange for a little execution time.  However, BUILDFIXED should not be
-   used for threaded applications, since the rewriting of the tables and virgin
-   may not be thread-safe.
- */
+  Return state with length and distance decoding tables and index sizes set to
+  fixed code decoding.  Normally this returns fixed tables from inffixed.h.
+  If BUILDFIXED is defined, then instead this routine builds the tables the
+  first time it's called, and returns those tables the first time and
+  thereafter.  This reduces the size of the code by about 2K bytes, in
+  exchange for a little execution time.  However, BUILDFIXED should not be
+  used for threaded applications, since the rewriting of the tables and virgin
+  may not be thread-safe.
+*/
 static void fixedtables (struct inflate_state* state)
 {
 #ifdef BUILDFIXED
@@ -118,7 +139,7 @@ static void fixedtables (struct inflate_state* state)
 
 /* Macros for inflateBack(): */
 
-/* Load returned state from inflate_fast() */
+/*! Load returned state from inflate_fast() */
 #define LOAD() \
     do { \
         put = strm->next_out; \
@@ -129,7 +150,7 @@ static void fixedtables (struct inflate_state* state)
         bits = state->bits; \
     } while (0)
 
-/* Set state from registers for inflate_fast() */
+/*! Set state from registers for inflate_fast() */
 #define RESTORE() \
     do { \
         strm->next_out = put; \
@@ -140,15 +161,15 @@ static void fixedtables (struct inflate_state* state)
         state->bits = bits; \
     } while (0)
 
-/* Clear the input bit accumulator */
+/*! Clear the input bit accumulator */
 #define INITBITS() \
     do { \
         hold = 0; \
         bits = 0; \
     } while (0)
 
-/* Assure that some input is available.  If input is requested, but denied,
-   then return a Z_BUF_ERROR from inflateBack(). */
+/*! Assure that some input is available.  If input is requested, but denied,
+  then return a Z_BUF_ERROR from inflateBack(). */
 #define PULL() \
     do { \
         if (have == 0) { \
@@ -161,8 +182,8 @@ static void fixedtables (struct inflate_state* state)
         } \
     } while (0)
 
-/* Get a byte of input into the bit accumulator, or return from inflateBack()
-   with an error if there is no input available. */
+/*! Get a byte of input into the bit accumulator, or return from inflateBack()
+  with an error if there is no input available. */
 #define PULLBYTE() \
     do { \
         PULL(); \
@@ -171,36 +192,36 @@ static void fixedtables (struct inflate_state* state)
         bits += 8; \
     } while (0)
 
-/* Assure that there are at least n bits in the bit accumulator.  If there is
-   not enough available input to do that, then return from inflateBack() with
-   an error. */
+/*! Assure that there are at least n bits in the bit accumulator.  If there is
+  not enough available input to do that, then return from inflateBack() with
+  an error. */
 #define NEEDBITS(n) \
     do { \
         while (bits < (unsigned)(n)) \
             PULLBYTE(); \
     } while (0)
 
-/* Return the low n bits of the bit accumulator (n < 16) */
+/*! Return the low n bits of the bit accumulator (n < 16) */
 #define BITS(n) \
     ((unsigned)hold & ((1U << (n)) - 1))
 
-/* Remove n bits from the bit accumulator */
+/*! Remove n bits from the bit accumulator */
 #define DROPBITS(n) \
     do { \
         hold >>= (n); \
         bits -= (unsigned)(n); \
     } while (0)
 
-/* Remove zero to seven bits as needed to go to a byte boundary */
+/*! Remove zero to seven bits as needed to go to a byte boundary */
 #define BYTEBITS() \
     do { \
         hold >>= bits & 7; \
         bits -= bits & 7; \
     } while (0)
 
-/* Assure that some output space is available, by writing out the window
-   if it's full.  If the write fails, return from inflateBack() with a
-   Z_BUF_ERROR. */
+/*! Assure that some output space is available, by writing out the window
+  if it's full.  If the write fails, return from inflateBack() with a
+  Z_BUF_ERROR. */
 #define ROOM() \
     do { \
         if (left == 0) { \

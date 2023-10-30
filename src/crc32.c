@@ -1049,6 +1049,14 @@ uLong ZEXPORT crc32_combine64(uLong crc1, uLong crc2, z_off64_t len2) {
 }
 
 /* ========================================================================= */
+/*!
+  Combine two CRC-32 check values into one.
+  
+  For two sequences of bytes, `seq1` and `seq2` with lengths `len1` and `len2`,
+  CRC-32 check values were calculated for each, `crc1` and `crc2`. 
+  crc32_combine() returns the CRC-32 check value of `seq1` and `seq2` concatenated,
+  requiring only `crc1`, `crc2`, and `len2`.
+*/
 uLong ZEXPORT crc32_combine(uLong crc1, uLong crc2, z_off_t len2) {
     return crc32_combine64(crc1, crc2, (z_off64_t)len2);
 }

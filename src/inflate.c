@@ -212,6 +212,57 @@ int ZEXPORT inflateReset2 (z_streamp strm, int windowBits)
     return inflateReset(strm);
 }
 
+/*!
+  This is another version of inflateInit with an extra parameter.  The
+  fields next_in, avail_in, zalloc, zfree and opaque must be initialized
+  before by the caller.
+
+  The windowBits parameter is the base two logarithm of the maximum window
+  size (the size of the history buffer).  It should be in the range 8..15 for
+  this version of the library.  The default value is 15 if inflateInit is used
+  instead.  windowBits must be greater than or equal to the windowBits value
+  provided to deflateInit2() while compressing, or it must be equal to 15 if
+  deflateInit2() was not used.  If a compressed stream with a larger window
+  size is given as input, inflate() will return with the error code
+  Z_DATA_ERROR instead of trying to allocate a larger window.
+
+    windowBits can also be zero to request that inflate use the window size in
+  the zlib header of the compressed stream.
+
+    windowBits can also be -8..-15 for raw inflate.  In this case, -windowBits
+  determines the window size.  inflate() will then process raw deflate data,
+  not looking for a zlib or gzip header, not generating a check value, and not
+  looking for any check values for comparison at the end of the stream.  This
+  is for use with other formats that use the deflate compressed data format
+  such as zip.  Those formats provide their own check values.  If a custom
+  format is developed using the raw deflate format for compressed data, it is
+  recommended that a check value such as an Adler-32 or a CRC-32 be applied to
+  the uncompressed data as is done in the zlib, gzip, and zip formats.  For
+  most applications, the zlib format should be used as is.  Note that comments
+  above on the use in deflateInit2() applies to the magnitude of windowBits.
+
+    windowBits can also be greater than 15 for optional gzip decoding.  Add
+  32 to windowBits to enable zlib and gzip decoding with automatic header
+  detection, or add 16 to decode only the gzip format (the zlib format will
+  return a Z_DATA_ERROR).  If a gzip stream is being decoded, strm->adler is a
+  CRC-32 instead of an Adler-32.  Unlike the gunzip utility and gzread() (see
+  below), inflate() will *not* automatically decode concatenated gzip members.
+  inflate() will return Z_STREAM_END at the end of the gzip member.  The state
+  would need to be reset to continue decoding a subsequent gzip member.  This
+  *must* be done if there is more data after a gzip member, in order for the
+  decompression to be compliant with the gzip standard (RFC 1952).
+
+    inflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
+  memory, Z_VERSION_ERROR if the zlib library version is incompatible with the
+  version assumed by the caller, or Z_STREAM_ERROR if the parameters are
+  invalid, such as a null pointer to the structure.  msg is set to null if
+  there is no error message.  inflateInit2 does not perform any decompression
+  apart from possibly reading the zlib header if present: actual decompression
+  will be done by inflate().  (So next_in and avail_in may be modified, but
+  next_out and avail_out are unused and unchanged.) The current implementation
+  of inflateInit2() does not process any header information -- that is
+  deferred until inflate() is called.
+*/
 int ZEXPORT inflateInit2_(z_streamp strm, int windowBits, const char* version, int stream_size)
 {
     int ret;
@@ -252,10 +303,28 @@ int ZEXPORT inflateInit2_(z_streamp strm, int windowBits, const char* version, i
     return ret;
 }
 
-int ZEXPORT inflateInit_(strm, version, stream_size)
-z_streamp strm;
-const char *version;
-int stream_size;
+/*!
+  Initializes the internal stream state for decompression.
+  
+  The fields z_stream_s::next_in, avail_in, zalloc, zfree and opaque must be initialized before by
+  the caller.  In the current version of inflate, the provided input is not
+  read or consumed.  The allocation of a sliding window will be deferred to
+  the first call of inflate (if the decompression does not complete on the
+  first call).  If zalloc and zfree are set to Z_NULL, inflateInit updates
+  them to use default allocation functions.  total_in, total_out, adler, and
+  msg are initialized.
+
+  inflateInit returns Z_OK if success, Z_MEM_ERROR if there was not enough
+  memory, Z_VERSION_ERROR if the zlib library version is incompatible with the
+  version assumed by the caller, or Z_STREAM_ERROR if the parameters are
+  invalid, such as a null pointer to the structure.  msg is set to null if
+  there is no error message.  inflateInit does not perform any decompression.
+  Actual decompression will be done by inflate().  So next_in, and avail_in,
+  next_out, and avail_out are unused and unchanged.  The current
+  implementation of inflateInit() does not process any header information --
+  that is deferred until inflate() is called.
+*/
+int ZEXPORT inflateInit_(z_streamp strm, const char* version, int stream_size)
 {
     return inflateInit2_(strm, DEF_WBITS, version, stream_size);
 }
@@ -1438,8 +1507,16 @@ int ZEXPORT inflate (z_streamp strm, int flush)
     return ret;
 }
 
-int ZEXPORT inflateEnd(strm)
-z_streamp strm;
+/*!
+  All dynamically allocated data structures for this stream are freed.
+
+  This function discards any unprocessed input and does not flush any pending
+  output.
+
+  \return Z_OK if success
+  \return Z_STREAM_ERROR if the stream state was inconsistent.
+*/
+int ZEXPORT inflateEnd (z_streamp strm)
 {
     struct inflate_state* state;
     if (inflateStateCheck(strm))
@@ -1537,6 +1614,45 @@ int ZEXPORT inflateSetDictionary (z_streamp strm, const Bytef* dictionary, uInt 
     return Z_OK;
 }
 
+/*!
+  Requests that gzip header information be stored in the provided gz_header
+  structure.
+  
+  inflateGetHeader() may be called after inflateInit2() or inflateReset(), 
+  and before the first call of inflate().
+  As inflate() processes the gzip stream, head->done is zero until the header
+  is completed, at which time head->done is set to one.  If a zlib stream is
+  being decoded, then head->done is set to -1 to indicate that there will be
+  no gzip header information forthcoming.  Note that Z_BLOCK or Z_TREES can be
+  used to force inflate() to return immediately after header processing is
+  complete and before any actual data is decompressed.
+
+  The text, time, xflags, and os fields are filled in with the gzip header
+  contents.  hcrc is set to true if there is a header CRC.  (The header CRC
+  was valid if done is set to one.) If extra is not Z_NULL, then extra_max
+  contains the maximum number of bytes to write to extra.  Once done is true,
+  extra_len contains the actual extra field length, and extra contains the
+  extra field, or that field truncated if extra_max is less than extra_len.
+  If name is not Z_NULL, then up to name_max characters are written there,
+  terminated with a zero unless the length is greater than name_max.  If
+  comment is not Z_NULL, then up to comm_max characters are written there,
+  terminated with a zero unless the length is greater than comm_max.  When any
+  of extra, name, or comment are not Z_NULL and the respective field is not
+  present in the header, then that field is set to Z_NULL to signal its
+  absence.  This allows the use of deflateSetHeader() with the returned
+  structure to duplicate the header.  However if those fields are set to
+  allocated memory, then the application will need to save those pointers
+  elsewhere so that they can be eventually freed.
+
+  If inflateGetHeader is not used, then the header information is simply
+  discarded.  The header is always checked for validity, including the header
+  CRC if present.  inflateReset() will reset the process to discard the header
+  information.  The application would need to call inflateGetHeader() again to
+  retrieve the header from the next gzip stream.
+
+  \return Z_OK if success
+  \return Z_STREAM_ERROR if the source stream state was inconsistent.
+*/
 int ZEXPORT inflateGetHeader (z_streamp strm, gz_headerp head)
 {
     struct inflate_state* state;

@@ -155,6 +155,17 @@ uLong ZEXPORT adler32(uLong adler, const Bytef *buf, uInt len) {
 }
 
 /* ========================================================================= */
+/*!
+  Combine two Adler-32 checksums into one.
+  
+  For two sequences of bytes, `seq1` and `seq2` with lengths `len1` and `len2`,
+  Adler-32 checksums were calculated for each, `adler1` and `adler2`. 
+  adler32_combine() returns the Adler-32 checksum of `seq1` and `seq2`
+  concatenated, requiring only `adler1`, `adler2`, and `len2`.
+  
+  Note that the z_off_t type (like off_t) is a signed integer.  If `len2` is
+  negative, the result has no meaning or utility.
+*/
 local uLong adler32_combine_(uLong adler1, uLong adler2, z_off64_t len2) {
     unsigned long sum1;
     unsigned long sum2;
