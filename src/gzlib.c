@@ -1,5 +1,5 @@
 /*!
-  \file gzlib.c -- zlib functions common to reading and writing gzip files
+  \file gzlib.c Functions common to reading and writing gzip files
   
   Copyright (C) 2004-2019 Mark Adler
   For conditions of distribution and use, see copyright notice in zlib.h
@@ -426,7 +426,22 @@ int ZEXPORT gzrewind(gzFile file)
     return 0;
 }
 
-/* -- see zlib.h -- */
+/*!
+  Set the starting position to offset relative to whence for the next gzread
+  or gzwrite on file.  The offset represents a number of bytes in the
+  uncompressed data stream.  The whence parameter is defined as in lseek(2);
+  the value SEEK_END is not supported.
+
+  If the file is opened for reading, this function is emulated but can be
+  extremely slow.  If the file is opened for writing, only forward seeks are
+  supported; gzseek64 then compresses a sequence of zeroes up to the new
+  starting position.
+
+  \return the resulting offset location as measured in bytes from
+  the beginning of the uncompressed stream, or -1 in case of error, in
+  particular if the file is opened for writing and the new starting position
+  would be before the current position.
+*/
 z_off64_t ZEXPORT gzseek64 (gzFile file, z_off64_t offset, int whence)
 {
     unsigned n;
@@ -524,7 +539,14 @@ z_off_t ZEXPORT gzseek (gzFile file, z_off_t offset, int whence)
     return ret == (z_off_t)ret ? (z_off_t)ret : -1;
 }
 
-/* -- see zlib.h -- */
+/*!
+  Return the starting position for the next gzread or gzwrite on file.
+  This position represents a number of bytes in the uncompressed data stream,
+  and is zero when starting, even if appending or reading a gzip stream from
+  the middle of a file using gzdopen().
+
+  gztell64(file) is equivalent to gzseek64(file, 0L, SEEK_CUR)
+*/
 z_off64_t ZEXPORT gztell64 (gzFile file)
 {
     gz_statep state;
@@ -556,7 +578,14 @@ z_off_t ZEXPORT gztell( gzFile file)
     return ret == (z_off_t)ret ? (z_off_t)ret : -1;
 }
 
-/* -- see zlib.h -- */
+/*!
+  Return the current compressed (actual) read or write offset of file.
+
+  This offset includes the count of bytes that precede the gzip stream, for example
+  when appending or when using gzdopen() for reading.  When reading, the
+  offset does not include as yet unused buffered input.  This information can
+  be used for a progress indicator.  On error, gzoffset64() returns -1.
+*/
 z_off64_t ZEXPORT gzoffset64(gzFile file)
 {
     z_off64_t offset;
@@ -681,12 +710,14 @@ void ZEXPORT gzclearerr (gzFile file)
     gz_error(state, Z_OK, NULL);
 }
 
-/* Create an error message in allocated memory and set state->err and
-   state->msg accordingly.  Free any previous error message already there.  Do
-   not try to free or allocate space if the error is Z_MEM_ERROR (out of
-   memory).  Simply save the error message as a static string.  If there is an
-   allocation failure constructing the error message, then convert the error to
-   out of memory. */
+/*!
+  Create an error message in allocated memory and set state->err and
+  state->msg accordingly.  Free any previous error message already there.  Do
+  not try to free or allocate space if the error is Z_MEM_ERROR (out of
+  memory).  Simply save the error message as a static string.  If there is an
+  allocation failure constructing the error message, then convert the error to
+  out of memory.
+*/
 void ZLIB_INTERNAL gz_error (gz_statep state, int err, const char* msg)
 {
     /* free previously allocated message and clear */

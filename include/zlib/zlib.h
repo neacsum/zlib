@@ -22,13 +22,14 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 
-  Jean-loup Gailly        Mark Adler
-  jloup@gzip.org          madler@alumni.caltech.edu
+  Jean-loup Gailly    jloup@gzip.org  
+  Mark Adler          madler@alumni.caltech.edu
 
 
   The data format used by the zlib library is described by RFCs (Request for
-  Comments) 1950 to 1952 in the files http://tools.ietf.org/html/rfc1950
-  (zlib format), rfc1951 (deflate format) and rfc1952 (gzip format).
+  Comments) 1950 to 1952 in the files https://tools.ietf.org/html/rfc1950
+  (zlib format), [rfc1951](https://tools.ietf.org/html/rfc1951) (deflate format)
+  and [rfc1952](https://tools.ietf.org/html/rfc1952) (gzip format).
 
   The 'zlib' compression library provides in-memory compression and
   decompression functions, including integrity checks of the uncompressed data.
@@ -88,9 +89,9 @@ extern "C" {
   \name Memory management functions
 
   The opaque value provided by the application will be passed as the first
-  parameter for calls of z_stream#zalloc and z_stream#zfree.  This can be useful for custom
-  memory management.  The compression library attaches no meaning to the
-  opaque value.
+  parameter for calls of z_stream::zalloc and z_stream::zfree.  This can be
+  useful for custom memory management.  The compression library attaches no
+  meaning to the opaque value.
   \ingroup basic
 @{
 */
@@ -105,12 +106,12 @@ struct internal_state;
 
   The application must update next_in and avail_in when avail_in has dropped
   to zero.  It must update next_out and avail_out when avail_out has dropped
-  to zero.  The application must initialize zalloc, zfree and opaque before
+  to zero.  The application must initialize #zalloc, #zfree and #opaque before
   calling the init function.  All other fields are set by the compression
   library and must not be updated by the application.
 
-  The fields total_in and total_out can be used for statistics or progress
-  reports.  After compression, total_in holds the total size of the
+  The fields #total_in and #total_out can be used for statistics or progress
+  reports.  After compression, #total_in holds the total size of the
   uncompressed data and may be saved for use by the decompressor (particularly
   if the decompressor wants to decompress everything in a single step).
 
@@ -183,7 +184,8 @@ typedef gz_header *gz_headerp;
                         /* constants */
 
 /*!
-  \name Allowed flush values; see deflate() and inflate() below for details
+  \name Allowed flush values
+  See deflate() and inflate() for details
 @{
 */
 #define Z_NO_FLUSH      0
@@ -205,10 +207,10 @@ typedef gz_header *gz_headerp;
 #define Z_NEED_DICT     2
 #define Z_ERRNO        (-1)
 #define Z_STREAM_ERROR (-2)   ///< Inconsistent stream state
-#define Z_DATA_ERROR   (-3)
-#define Z_MEM_ERROR    (-4)
-#define Z_BUF_ERROR    (-5)   ///< buffer full error
-#define Z_VERSION_ERROR (-6)  ///< library version mismatch
+#define Z_DATA_ERROR   (-3)   ///< Invalid input data
+#define Z_MEM_ERROR    (-4)   ///< Out of memeory
+#define Z_BUF_ERROR    (-5)   ///< Buffer full error
+#define Z_VERSION_ERROR (-6)  ///< Library version mismatch
 ///@}
 
 /// \name Compression levels

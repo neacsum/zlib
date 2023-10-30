@@ -1,5 +1,5 @@
 /*!
-  \file crc32.c -- compute the CRC-32 of a data stream
+  \file crc32.c Compute the CRC-32 of a data stream
 
   Copyright (C) 1995-2022 Mark Adler
   For conditions of distribution and use, see copyright notice in zlib.h

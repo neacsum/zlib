@@ -1,5 +1,5 @@
 /*!
-  \file gzread.c -- zlib functions for reading gzip files
+  \file gzread.c Functions for reading gzip files
 
   Copyright (C) 2004-2017 Mark Adler
   For conditions of distribution and use, see copyright notice in zlib.h
@@ -7,10 +7,12 @@
 
 #include "gzguts.h"
 
-/* Use read() to load a buffer -- return -1 on error, otherwise 0.  Read from
-   state->fd, and update state->eof, state->err, and state->msg as appropriate.
-   This function needs to loop on read(), since read() is not guaranteed to
-   read the number of bytes requested, depending on the type of descriptor. */
+/*!
+  Use read() to load a buffer -- return -1 on error, otherwise 0.  Read from
+  state->fd, and update state->eof, state->err, and state->msg as appropriate.
+  This function needs to loop on read(), since read() is not guaranteed to
+  read the number of bytes requested, depending on the type of descriptor.
+*/
 local int gz_load(gz_statep state, unsigned char *buf, unsigned len,
                   unsigned *have) {
     int ret;
@@ -35,13 +37,15 @@ local int gz_load(gz_statep state, unsigned char *buf, unsigned len,
     return 0;
 }
 
-/* Load up input buffer and set eof flag if last data loaded -- return -1 on
-   error, 0 otherwise.  Note that the eof flag is set when the end of the input
-   file is reached, even though there may be unused data in the buffer.  Once
-   that data has been used, no more attempts will be made to read the file.
-   If strm->avail_in != 0, then the current data is moved to the beginning of
-   the input buffer, and then the remainder of the buffer is loaded with the
-   available data from the input file. */
+/*!
+  Load up input buffer and set eof flag if last data loaded -- return -1 on
+  error, 0 otherwise.  Note that the eof flag is set when the end of the input
+  file is reached, even though there may be unused data in the buffer.  Once
+  that data has been used, no more attempts will be made to read the file.
+  If strm->avail_in != 0, then the current data is moved to the beginning of
+  the input buffer, and then the remainder of the buffer is loaded with the
+  available data from the input file.
+ */
 local int gz_avail(gz_statep state) {
     unsigned got;
     z_streamp strm = &(state->strm);
@@ -403,20 +407,20 @@ int ZEXPORT gzread(gzFile file, voidp buf, unsigned len) {
 }
 
 /*!
-  Read and decompress up to nitems items of size size from file into buf,
+  Read and decompress up to \p nitems items of size \p size from file into \p buf,
   otherwise operating as gzread() does.  This duplicates the interface of
   stdio's fread(), with size_t request and return types.  If the library
   defines size_t, then z_size_t is identical to size_t.  If not, then z_size_t
   is an unsigned integer type that can contain a pointer.
 
-    gzfread() returns the number of full items read of size size, or zero if
+   gzfread() returns the number of full items read of size \p size, or zero if
   the end of the file was reached and a full item could not be read, or if
   there was an error.  gzerror() must be consulted if zero is returned in
   order to determine if there was an error.  If the multiplication of size and
   nitems overflows, i.e. the product does not fit in a z_size_t, then nothing
   is read, zero is returned, and the error state is set to Z_STREAM_ERROR.
 
-    In the event that the end of file is reached and only a partial item is
+   In the event that the end of file is reached and only a partial item is
   available at the end, i.e. the remaining uncompressed data length is not a
   multiple of size, then the final partial item is nevertheless read into buf
   and the end-of-file flag is set.  The length of the partial item read is not

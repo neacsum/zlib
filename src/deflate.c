@@ -1,5 +1,5 @@
 /*!
-  \file deflate.c -- compress data using the deflation algorithm
+  \file deflate.c Compress data using the deflation algorithm
 
   Copyright (C) 1995-2023 Jean-loup Gailly and Mark Adler
   For conditions of distribution and use, see copyright notice in zlib.h
@@ -92,15 +92,16 @@ local block_state deflate_huff(deflate_state *s, int flush);
 #endif
 /* Matches of length 3 are discarded if their distance exceeds TOO_FAR */
 
-/* Values for max_lazy_match, good_match and max_chain_length, depending on
- * the desired pack level (0..9). The values given below have been tuned to
- * exclude worst case performance for pathological files. Better values may be
- * found for specific files.
- */
+/*!
+  Values for max_lazy_match, good_match and max_chain_length, depending on
+  the desired pack level (0..9). The values given below have been tuned to
+  exclude worst case performance for pathological files. Better values may be
+  found for specific files.
+*/
 typedef struct config_s {
-   ush good_length; /* reduce lazy search above this match length */
-   ush max_lazy;    /* do not perform lazy search above this match length */
-   ush nice_length; /* quit search above this match length */
+   ush good_length; /*!< reduce lazy search above this match length */
+   ush max_lazy;    /*!< do not perform lazy search above this match length */
+   ush nice_length; /*!< quit search above this match length */
    ush max_chain;
    compress_func func;
 } config;
@@ -1652,15 +1653,18 @@ int ZEXPORT deflate(z_streamp strm, int flush) {
 
 /* ========================================================================= */
 /*!
-     All dynamically allocated data structures for this stream are freed.
+   All dynamically allocated data structures for this stream are freed.
+   
    This function discards any unprocessed input and does not flush any pending
    output.
 
-     deflateEnd returns Z_OK if success, Z_STREAM_ERROR if the
-   stream state was inconsistent, Z_DATA_ERROR if the stream was freed
-   prematurely (some input or output was discarded).  In the error case, msg
-   may be set but then points to a static string (which must not be
-   deallocated).
+   \return Z_OK if success
+   \return Z_STREAM_ERROR if the stream state was inconsistent
+   \return Z_DATA_ERROR if the stream was freed prematurely (some input or output
+            was discarded).
+            
+   In the error case, msg may be set but then points to a static string (which
+   must not be deallocated).
 */
 int ZEXPORT deflateEnd(z_streamp strm) {
     int status;
@@ -1695,10 +1699,12 @@ int ZEXPORT deflateEnd(z_streamp strm) {
   To simplify the source, this is not supported for 16-bit MSDOS (which
   doesn't have enough memory anyway to duplicate compression states).
 
-  \return `Z_OK` if success, `Z_MEM_ERROR` if there was not
-  enough memory, `Z_STREAM_ERROR` if the source stream state was inconsistent
-  (such as zalloc being `Z_NULL`).  msg is left unchanged in both source and
-  destination.
+  \return Z_OK if success,
+  \return Z_MEM_ERROR if there was not enough memory
+  \return Z_STREAM_ERROR if the source stream state was inconsistent
+  (such as zalloc being `Z_NULL`).
+  
+  msg is left unchanged in both source and destination.
 */
 int ZEXPORT deflateCopy (z_streamp dest, z_streamp source) {
 #ifdef MAXSEG_64K
