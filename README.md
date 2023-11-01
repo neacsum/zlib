@@ -4,7 +4,9 @@ This is my fork of [zlib library](https://github.com/madler/zlib) forked at vers
 
 As per guidelines, it is versioned as 1.3.0.f-neacsum.
 
-Main reasons for forking are changes to source code layout to make it compliant with UCCL ([Uniform C Code Layout](https://neacsu.net/docs/programming/code_layout/uccl/)). Also, it is my intention to integrate Doxygen documentation. A first draft of documentation can be seen on [Gihub pages](https://neacsum.github.io/zlib).
+Main reasons for forking are changes to source code layout to make it compliant with UCCL ([Uniform C Code Layout](https://neacsu.net/docs/programming/code_layout/uccl/)). Also, it is my intention to integrate Doxygen documentation. Draft documentation can be seen on [Gihub pages](https://neacsum.github.io/zlib).
+
+Official zlib page is at https://zlib.net
 
 ## Building
 As all things UCCL, preferred method to build is to use [CPM package manager](https://github.com/neacsum/cpm).

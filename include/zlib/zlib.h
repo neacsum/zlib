@@ -134,7 +134,7 @@ struct internal_state;
   \ingroup basic
 */
 typedef struct z_stream_s {
-    z_const Bytef *next_in; ///< next input byte
+    const Bytef *next_in;   ///< next input byte
     uInt     avail_in;      ///< number of bytes available at next_in
     uLong    total_in;      ///< total number of input bytes read so far
 
@@ -142,7 +142,7 @@ typedef struct z_stream_s {
     uInt     avail_out;     ///< remaining free space at next_out
     uLong    total_out;     ///< total number of bytes output so far
 
-    z_const char *msg;      ///< last error message, NULL if no error
+    const char *msg;        ///< last error message, NULL if no error
     struct internal_state *state; ///< not visible by applications
 
     alloc_func zalloc;      ///< used to allocate the internal state
@@ -337,7 +337,7 @@ int ZEXPORT inflateGetHeader(z_streamp strm,
                              gz_headerp head);
 
 ///  Input function used by inflateBack()
-typedef unsigned (*in_func)(void*, z_const unsigned char* *);
+typedef unsigned (*in_func)(void*, const unsigned char* *);
 
 /// Output function used by inflateBack()
 typedef int (*out_func)(void*, unsigned char *, unsigned);

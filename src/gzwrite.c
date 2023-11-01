@@ -218,7 +218,7 @@ local z_size_t gz_write(gz_statep state, voidpc buf, z_size_t len) {
             return 0;
 
         /* directly compress user buffer to file */
-        state->strm.next_in = (z_const Bytef *)buf;
+        state->strm.next_in = (const Bytef *)buf;
         do {
             unsigned n = (unsigned)-1;
             if (n > len)
