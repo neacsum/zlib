@@ -1,7 +1,9 @@
-/* inflate.c -- zlib decompression
- * Copyright (C) 1995-2022 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h
- */
+/*!
+  \file inflate.c zlib decompression
+
+  Copyright (C) 1995-2022 Mark Adler
+  For conditions of distribution and use, see copyright notice in zlib.h
+*/
 
 /*
  * Change history:
@@ -140,6 +142,15 @@ int ZEXPORT inflateResetKeep (z_streamp strm)
     return Z_OK;
 }
 
+/*!
+   This function is equivalent to inflateEnd followed by inflateInit,
+   but does not free and reallocate the internal decompression state.  The
+   stream will keep attributes that may have been set by inflateInit2.
+   total_in, total_out, adler, and msg are initialized.
+
+   inflateReset returns Z_OK if success, or Z_STREAM_ERROR if the source
+   stream state was inconsistent (such as zalloc or state being Z_NULL).
+*/
 int ZEXPORT inflateReset (z_streamp strm)
 {
     struct inflate_state* state;
@@ -152,6 +163,17 @@ int ZEXPORT inflateReset (z_streamp strm)
     return inflateResetKeep(strm);
 }
 
+/*!
+   This function is the same as inflateReset, but it also permits changing
+   the wrap and window size requests.  The windowBits parameter is interpreted
+   the same as it is for inflateInit2.  If the window size is changed, then the
+   memory allocated for the window is freed, and the window will be reallocated
+   by inflate() if needed.
+
+     inflateReset2 returns Z_OK if success, or Z_STREAM_ERROR if the source
+   stream state was inconsistent (such as zalloc or state being Z_NULL), or if
+   the windowBits parameter is invalid.
+*/
 int ZEXPORT inflateReset2 (z_streamp strm, int windowBits)
 {
     int wrap;
@@ -190,6 +212,57 @@ int ZEXPORT inflateReset2 (z_streamp strm, int windowBits)
     return inflateReset(strm);
 }
 
+/*!
+  This is another version of inflateInit with an extra parameter.  The
+  fields next_in, avail_in, zalloc, zfree and opaque must be initialized
+  before by the caller.
+
+  The windowBits parameter is the base two logarithm of the maximum window
+  size (the size of the history buffer).  It should be in the range 8..15 for
+  this version of the library.  The default value is 15 if inflateInit is used
+  instead.  windowBits must be greater than or equal to the windowBits value
+  provided to deflateInit2() while compressing, or it must be equal to 15 if
+  deflateInit2() was not used.  If a compressed stream with a larger window
+  size is given as input, inflate() will return with the error code
+  Z_DATA_ERROR instead of trying to allocate a larger window.
+
+    windowBits can also be zero to request that inflate use the window size in
+  the zlib header of the compressed stream.
+
+    windowBits can also be -8..-15 for raw inflate.  In this case, -windowBits
+  determines the window size.  inflate() will then process raw deflate data,
+  not looking for a zlib or gzip header, not generating a check value, and not
+  looking for any check values for comparison at the end of the stream.  This
+  is for use with other formats that use the deflate compressed data format
+  such as zip.  Those formats provide their own check values.  If a custom
+  format is developed using the raw deflate format for compressed data, it is
+  recommended that a check value such as an Adler-32 or a CRC-32 be applied to
+  the uncompressed data as is done in the zlib, gzip, and zip formats.  For
+  most applications, the zlib format should be used as is.  Note that comments
+  above on the use in deflateInit2() applies to the magnitude of windowBits.
+
+    windowBits can also be greater than 15 for optional gzip decoding.  Add
+  32 to windowBits to enable zlib and gzip decoding with automatic header
+  detection, or add 16 to decode only the gzip format (the zlib format will
+  return a Z_DATA_ERROR).  If a gzip stream is being decoded, strm->adler is a
+  CRC-32 instead of an Adler-32.  Unlike the gunzip utility and gzread() (see
+  below), inflate() will *not* automatically decode concatenated gzip members.
+  inflate() will return Z_STREAM_END at the end of the gzip member.  The state
+  would need to be reset to continue decoding a subsequent gzip member.  This
+  *must* be done if there is more data after a gzip member, in order for the
+  decompression to be compliant with the gzip standard (RFC 1952).
+
+    inflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
+  memory, Z_VERSION_ERROR if the zlib library version is incompatible with the
+  version assumed by the caller, or Z_STREAM_ERROR if the parameters are
+  invalid, such as a null pointer to the structure.  msg is set to null if
+  there is no error message.  inflateInit2 does not perform any decompression
+  apart from possibly reading the zlib header if present: actual decompression
+  will be done by inflate().  (So next_in and avail_in may be modified, but
+  next_out and avail_out are unused and unchanged.) The current implementation
+  of inflateInit2() does not process any header information -- that is
+  deferred until inflate() is called.
+*/
 int ZEXPORT inflateInit2_(z_streamp strm, int windowBits, const char* version, int stream_size)
 {
     int ret;
@@ -230,18 +303,50 @@ int ZEXPORT inflateInit2_(z_streamp strm, int windowBits, const char* version, i
     return ret;
 }
 
-int ZEXPORT inflateInit_(strm, version, stream_size)
-z_streamp strm;
-const char *version;
-int stream_size;
+/*!
+  Initializes the internal stream state for decompression.
+  
+  The fields z_stream_s::next_in, avail_in, zalloc, zfree and opaque must be initialized before by
+  the caller.  In the current version of inflate, the provided input is not
+  read or consumed.  The allocation of a sliding window will be deferred to
+  the first call of inflate (if the decompression does not complete on the
+  first call).  If zalloc and zfree are set to Z_NULL, inflateInit updates
+  them to use default allocation functions.  total_in, total_out, adler, and
+  msg are initialized.
+
+  inflateInit returns Z_OK if success, Z_MEM_ERROR if there was not enough
+  memory, Z_VERSION_ERROR if the zlib library version is incompatible with the
+  version assumed by the caller, or Z_STREAM_ERROR if the parameters are
+  invalid, such as a null pointer to the structure.  msg is set to null if
+  there is no error message.  inflateInit does not perform any decompression.
+  Actual decompression will be done by inflate().  So next_in, and avail_in,
+  next_out, and avail_out are unused and unchanged.  The current
+  implementation of inflateInit() does not process any header information --
+  that is deferred until inflate() is called.
+*/
+int ZEXPORT inflateInit_(z_streamp strm, const char* version, int stream_size)
 {
     return inflateInit2_(strm, DEF_WBITS, version, stream_size);
 }
 
-int ZEXPORT inflatePrime(strm, bits, value)
-z_streamp strm;
-int bits;
-int value;
+/*!
+     This function inserts bits in the inflate input stream.  The intent is
+   that this function is used to start inflating at a bit position in the
+   middle of a byte.  The provided bits will be used before any bytes are used
+   from next_in.  This function should only be used with raw inflate, and
+   should be used before the first inflate() call after inflateInit2() or
+   inflateReset().  bits must be less than or equal to 16, and that many of the
+   least significant bits of value will be inserted in the input.
+
+     If bits is negative, then the input stream bit buffer is emptied.  Then
+   inflatePrime() can be called again to put bits in the buffer.  This is used
+   to clear out bits leftover after feeding inflate a block description prior
+   to feeding inflate codes.
+
+     inflatePrime returns Z_OK if success, or Z_STREAM_ERROR if the source
+   stream state was inconsistent.
+*/
+int ZEXPORT inflatePrime (z_streamp strm, int bits, int value)
 {
     struct inflate_state* state;
 
@@ -261,7 +366,7 @@ int value;
     return Z_OK;
 }
 
-/*
+/*!
    Return state with length and distance decoding tables and index sizes set to
    fixed code decoding.  Normally this returns fixed tables from inffixed.h.
    If BUILDFIXED is defined, then instead this routine builds the tables the
@@ -374,7 +479,7 @@ void makefixed()
 }
 #endif /* MAKEFIXED */
 
-/*
+/*!
    Update the window with the last wsize (normally 32K) bytes written before
    returning.  If window does not exist yet, create it.  This is only called
    when a window is already in use, or when output has been written during this
@@ -529,11 +634,127 @@ int updatewindow (z_streamp strm, const Bytef* end, unsigned int copy)
         bits -= bits & 7; \
     } while (0)
 
-/*
+/*!
+  Decompresses as much data as possible, and stops when the input
+  buffer becomes empty or the output buffer becomes full.  It may introduce
+  some output latency (reading input without producing any output) except when
+  forced to flush.
+
+  The detailed semantics are as follows.  inflate performs one or both of the
+  following actions:
+
+  - Decompress more input starting at next_in and update next_in and avail_in
+    accordingly.  If not all input can be processed (because there is not
+    enough room in the output buffer), then next_in and avail_in are updated
+    accordingly, and processing will resume at this point for the next call of
+    inflate().
+
+  - Generate more output starting at next_out and update next_out and avail_out
+    accordingly.  inflate() provides as much output as possible, until there is
+    no more input data or no more space in the output buffer (see below about
+    the flush parameter).
+
+    Before the call of inflate(), the application should ensure that at least
+  one of the actions is possible, by providing more input and/or consuming more
+  output, and updating the next_* and avail_* values accordingly.  If the
+  caller of inflate() does not provide both available input and available
+  output space, it is possible that there will be no progress made.  The
+  application can consume the uncompressed output when it wants, for example
+  when the output buffer is full (avail_out == 0), or after each call of
+  inflate().  If inflate returns Z_OK and with zero avail_out, it must be
+  called again after making room in the output buffer because there might be
+  more output pending.
+
+    The flush parameter of inflate() can be Z_NO_FLUSH, Z_SYNC_FLUSH, Z_FINISH,
+  Z_BLOCK, or Z_TREES.  Z_SYNC_FLUSH requests that inflate() flush as much
+  output as possible to the output buffer.  Z_BLOCK requests that inflate()
+  stop if and when it gets to the next deflate block boundary.  When decoding
+  the zlib or gzip format, this will cause inflate() to return immediately
+  after the header and before the first block.  When doing a raw inflate,
+  inflate() will go ahead and process the first block, and will return when it
+  gets to the end of that block, or when it runs out of data.
+
+    The Z_BLOCK option assists in appending to or combining deflate streams.
+  To assist in this, on return inflate() always sets strm->data_type to the
+  number of unused bits in the last byte taken from strm->next_in, plus 64 if
+  inflate() is currently decoding the last block in the deflate stream, plus
+  128 if inflate() returned immediately after decoding an end-of-block code or
+  decoding the complete header up to just before the first byte of the deflate
+  stream.  The end-of-block will not be indicated until all of the uncompressed
+  data from that block has been written to strm->next_out.  The number of
+  unused bits may in general be greater than seven, except when bit 7 of
+  data_type is set, in which case the number of unused bits will be less than
+  eight.  data_type is set as noted here every time inflate() returns for all
+  flush options, and so can be used to determine the amount of currently
+  consumed input in bits.
+
+    The Z_TREES option behaves as Z_BLOCK does, but it also returns when the
+  end of each deflate block header is reached, before any actual data in that
+  block is decoded.  This allows the caller to determine the length of the
+  deflate block header for later use in random access within a deflate block.
+  256 is added to the value of strm->data_type when inflate() returns
+  immediately after reaching the end of the deflate block header.
+
+    inflate() should normally be called until it returns Z_STREAM_END or an
+  error.  However if all decompression is to be performed in a single step (a
+  single call of inflate), the parameter flush should be set to Z_FINISH.  In
+  this case all pending input is processed and all pending output is flushed;
+  avail_out must be large enough to hold all of the uncompressed data for the
+  operation to complete.  (The size of the uncompressed data may have been
+  saved by the compressor for this purpose.)  The use of Z_FINISH is not
+  required to perform an inflation in one step.  However it may be used to
+  inform inflate that a faster approach can be used for the single inflate()
+  call.  Z_FINISH also informs inflate to not maintain a sliding window if the
+  stream completes, which reduces inflate's memory footprint.  If the stream
+  does not complete, either because not all of the stream is provided or not
+  enough output space is provided, then a sliding window will be allocated and
+  inflate() can be called again to continue the operation as if Z_NO_FLUSH had
+  been used.
+
+     In this implementation, inflate() always flushes as much output as
+  possible to the output buffer, and always uses the faster approach on the
+  first call.  So the effects of the flush parameter in this implementation are
+  on the return value of inflate() as noted below, when inflate() returns early
+  when Z_BLOCK or Z_TREES is used, and when inflate() avoids the allocation of
+  memory for a sliding window when Z_FINISH is used.
+
+     If a preset dictionary is needed after this call (see inflateSetDictionary
+  below), inflate sets strm->adler to the Adler-32 checksum of the dictionary
+  chosen by the compressor and returns Z_NEED_DICT; otherwise it sets
+  strm->adler to the Adler-32 checksum of all output produced so far (that is,
+  total_out bytes) and returns Z_OK, Z_STREAM_END or an error code as described
+  below.  At the end of the stream, inflate() checks that its computed Adler-32
+  checksum is equal to that saved by the compressor and returns Z_STREAM_END
+  only if the checksum is correct.
+
+    inflate() can decompress and check either zlib-wrapped or gzip-wrapped
+  deflate data.  The header type is detected automatically, if requested when
+  initializing with inflateInit2().  Any information contained in the gzip
+  header is not retained unless inflateGetHeader() is used.  When processing
+  gzip-wrapped deflate data, strm->adler32 is set to the CRC-32 of the output
+  produced so far.  The CRC-32 is checked against the gzip trailer, as is the
+  uncompressed length, modulo 2^32.
+
+    inflate() returns Z_OK if some progress has been made (more input processed
+  or more output produced), Z_STREAM_END if the end of the compressed data has
+  been reached and all uncompressed output has been produced, Z_NEED_DICT if a
+  preset dictionary is needed at this point, Z_DATA_ERROR if the input data was
+  corrupted (input stream not conforming to the zlib format or incorrect check
+  value, in which case strm->msg points to a string with a more specific
+  error), Z_STREAM_ERROR if the stream structure was inconsistent (for example
+  next_in or next_out was Z_NULL, or the state was inadvertently written over
+  by the application), Z_MEM_ERROR if there was not enough memory, Z_BUF_ERROR
+  if no progress was possible or if there was not enough room in the output
+  buffer when Z_FINISH is used.  Note that Z_BUF_ERROR is not fatal, and
+  inflate() can be called again with more input and more output space to
+  continue decompressing.  If Z_DATA_ERROR is returned, the application may
+  then call inflateSync() to look for a good compression block if a partial
+  recovery of the data is to be attempted.
+
    inflate() uses a state machine to process as much input data and generate as
    much output data as possible before returning.  The state machine is
    structured roughly as follows:
-
+```C
     for (;;) switch (state) {
     ...
     case STATEn:
@@ -544,18 +765,18 @@ int updatewindow (z_streamp strm, const Bytef* end, unsigned int copy)
         break;
     ...
     }
-
+```
    so when inflate() is called again, the same case is attempted again, and
    if the appropriate resources are provided, the machine proceeds to the
    next state.  The NEEDBITS() macro is usually the way the state evaluates
    whether it can proceed or should return.  NEEDBITS() does the return if
    the requested bits are not available.  The typical use of the BITS macros
    is:
-
+```C
         NEEDBITS(n);
         ... do something with BITS(n) ...
         DROPBITS(n);
-
+```
    where NEEDBITS(n) either returns from inflate() if there isn't enough
    input left to load n bits into the accumulator, or it continues.  BITS(n)
    gives the low n bits in the accumulator.  When done, DROPBITS(n) drops
@@ -574,7 +795,7 @@ int updatewindow (z_streamp strm, const Bytef* end, unsigned int copy)
    if NEEDBITS() returns in the loop.  For example, want, need, and keep
    would all have to actually be part of the saved state in case NEEDBITS()
    returns:
-
+```C
     case STATEw:
         while (want < need) {
             NEEDBITS(n);
@@ -583,7 +804,7 @@ int updatewindow (z_streamp strm, const Bytef* end, unsigned int copy)
         }
         state = STATEx;
     case STATEx:
-
+```
    As shown above, if the next state is also the next case, then the break
    is omitted.
 
@@ -609,8 +830,7 @@ int updatewindow (z_streamp strm, const Bytef* end, unsigned int copy)
    stream available.  So the only thing the flush parameter actually does is:
    when flush is set to Z_FINISH, inflate() cannot return Z_OK.  Instead it
    will return Z_BUF_ERROR if it has not reached the end of the stream.
- */
-
+*/
 int ZEXPORT inflate (z_streamp strm, int flush)
 {
     struct inflate_state *state;
@@ -1287,8 +1507,16 @@ int ZEXPORT inflate (z_streamp strm, int flush)
     return ret;
 }
 
-int ZEXPORT inflateEnd(strm)
-z_streamp strm;
+/*!
+  All dynamically allocated data structures for this stream are freed.
+
+  This function discards any unprocessed input and does not flush any pending
+  output.
+
+  \return Z_OK if success
+  \return Z_STREAM_ERROR if the stream state was inconsistent.
+*/
+int ZEXPORT inflateEnd (z_streamp strm)
 {
     struct inflate_state* state;
     if (inflateStateCheck(strm))
@@ -1301,6 +1529,18 @@ z_streamp strm;
     return Z_OK;
 }
 
+/*!
+    Returns the sliding dictionary being maintained by inflate.
+    
+   dictLength is set to the number of bytes in the dictionary, and that many bytes are copied
+   to dictionary.  dictionary must have enough space, where 32768 bytes is
+   always enough.  If inflateGetDictionary() is called with dictionary equal to
+   Z_NULL, then only the dictionary length is returned, and nothing is copied.
+   Similarly, if dictLength is Z_NULL, then it is not set.
+
+     inflateGetDictionary returns Z_OK on success, or Z_STREAM_ERROR if the
+   stream state is inconsistent.
+*/
 int ZEXPORT inflateGetDictionary (z_streamp strm, Bytef* dictionary, uInt* dictLength)
 {
     struct inflate_state* state;
@@ -1321,6 +1561,27 @@ int ZEXPORT inflateGetDictionary (z_streamp strm, Bytef* dictionary, uInt* dictL
     return Z_OK;
 }
 
+/*!
+   Initializes the decompression dictionary from the given uncompressed byte
+   sequence.
+   
+   This function must be called immediately after a call of inflate(),
+   if that call returned Z_NEED_DICT.  The dictionary chosen by the compressor
+   can be determined from the Adler-32 value returned by that call of inflate.
+   The compressor and decompressor must use exactly the same dictionary (see
+   deflateSetDictionary).  For raw inflate, this function can be called at any
+   time to set the dictionary.  If the provided dictionary is smaller than the
+   window and there is already data in the window, then the provided dictionary
+   will amend what's there.  The application must insure that the dictionary
+   that was used for compression is provided.
+
+     inflateSetDictionary returns Z_OK if success, Z_STREAM_ERROR if a
+   parameter is invalid (e.g.  dictionary being Z_NULL) or the stream state is
+   inconsistent, Z_DATA_ERROR if the given dictionary doesn't match the
+   expected one (incorrect Adler-32 value).  inflateSetDictionary does not
+   perform any decompression: this will be done by subsequent calls of
+   inflate().
+*/
 int ZEXPORT inflateSetDictionary (z_streamp strm, const Bytef* dictionary, uInt dictLength)
 {
     struct inflate_state* state;
@@ -1353,6 +1614,45 @@ int ZEXPORT inflateSetDictionary (z_streamp strm, const Bytef* dictionary, uInt 
     return Z_OK;
 }
 
+/*!
+  Requests that gzip header information be stored in the provided gz_header
+  structure.
+  
+  inflateGetHeader() may be called after inflateInit2() or inflateReset(), 
+  and before the first call of inflate().
+  As inflate() processes the gzip stream, head->done is zero until the header
+  is completed, at which time head->done is set to one.  If a zlib stream is
+  being decoded, then head->done is set to -1 to indicate that there will be
+  no gzip header information forthcoming.  Note that Z_BLOCK or Z_TREES can be
+  used to force inflate() to return immediately after header processing is
+  complete and before any actual data is decompressed.
+
+  The text, time, xflags, and os fields are filled in with the gzip header
+  contents.  hcrc is set to true if there is a header CRC.  (The header CRC
+  was valid if done is set to one.) If extra is not Z_NULL, then extra_max
+  contains the maximum number of bytes to write to extra.  Once done is true,
+  extra_len contains the actual extra field length, and extra contains the
+  extra field, or that field truncated if extra_max is less than extra_len.
+  If name is not Z_NULL, then up to name_max characters are written there,
+  terminated with a zero unless the length is greater than name_max.  If
+  comment is not Z_NULL, then up to comm_max characters are written there,
+  terminated with a zero unless the length is greater than comm_max.  When any
+  of extra, name, or comment are not Z_NULL and the respective field is not
+  present in the header, then that field is set to Z_NULL to signal its
+  absence.  This allows the use of deflateSetHeader() with the returned
+  structure to duplicate the header.  However if those fields are set to
+  allocated memory, then the application will need to save those pointers
+  elsewhere so that they can be eventually freed.
+
+  If inflateGetHeader is not used, then the header information is simply
+  discarded.  The header is always checked for validity, including the header
+  CRC if present.  inflateReset() will reset the process to discard the header
+  information.  The application would need to call inflateGetHeader() again to
+  retrieve the header from the next gzip stream.
+
+  \return Z_OK if success
+  \return Z_STREAM_ERROR if the source stream state was inconsistent.
+*/
 int ZEXPORT inflateGetHeader (z_streamp strm, gz_headerp head)
 {
     struct inflate_state* state;
@@ -1368,7 +1668,7 @@ int ZEXPORT inflateGetHeader (z_streamp strm, gz_headerp head)
     return Z_OK;
 }
 
-/*
+/*!
    Search buf[0..len-1] for the pattern: 0, 0, 0xff, 0xff.  Return when found
    or when out of input.  When called, *have is the number of pattern bytes
    found in order so far, in 0..3.  On return *have is updated to the new
@@ -1399,6 +1699,23 @@ unsigned syncsearch (unsigned* have, const unsigned char* buf, unsigned len)
     return next;
 }
 
+/*!
+   Skips invalid compressed data until a possible full flush point (see above
+   for the description of deflate with Z_FULL_FLUSH) can be found, or until all
+   available input is skipped.  No output is provided.
+
+   inflateSync searches for a 00 00 FF FF pattern in the compressed data.
+   All full flush points have this pattern, but not all occurrences of this
+   pattern are full flush points.
+
+   inflateSync returns Z_OK if a possible full flush point has been found,
+   Z_BUF_ERROR if no more input was provided, Z_DATA_ERROR if no flush point
+   has been found, or Z_STREAM_ERROR if the stream structure was inconsistent.
+   In the success case, the application may save the current current value of
+   total_in which indicates where valid compressed data was found.  In the
+   error case, the application may repeatedly call inflateSync, providing more
+   input each time, until success or end of the input data.
+*/
 int ZEXPORT inflateSync (z_streamp strm)
 {
     unsigned len;               /* number of bytes to look at or looked at */
@@ -1465,9 +1782,20 @@ int ZEXPORT inflateSyncPoint (z_streamp strm)
     return state->mode == STORED && state->bits == 0;
 }
 
-int ZEXPORT inflateCopy(dest, source)
-z_streamp dest;
-z_streamp source;
+/*!
+   Sets the destination stream as a complete copy of the source stream.
+
+   This function can be useful when randomly accessing a large stream.  The
+   first pass through the stream can periodically record the inflate state,
+   allowing restarting inflate at those points when randomly accessing the
+   stream.
+
+   inflateCopy returns Z_OK if success, Z_MEM_ERROR if there was not
+   enough memory, Z_STREAM_ERROR if the source stream state was inconsistent
+   (such as zalloc being Z_NULL).  msg is left unchanged in both source and
+   destination.
+*/
+int ZEXPORT inflateCopy (z_streamp dest, z_streamp source)
 {
     struct inflate_state* state;
     struct inflate_state* copy;
@@ -1541,6 +1869,32 @@ int ZEXPORT inflateValidate (z_streamp strm, int check)
     return Z_OK;
 }
 
+/*!
+   This function returns two values, one in the lower 16 bits of the return
+   value, and the other in the remaining upper bits, obtained by shifting the
+   return value down 16 bits.  If the upper value is -1 and the lower value is
+   zero, then inflate() is currently decoding information outside of a block.
+   If the upper value is -1 and the lower value is non-zero, then inflate is in
+   the middle of a stored block, with the lower value equaling the number of
+   bytes from the input remaining to copy.  If the upper value is not -1, then
+   it is the number of bits back from the current bit position in the input of
+   the code (literal or length/distance pair) currently being processed.  In
+   that case the lower value is the number of bytes already emitted for that
+   code.
+
+     A code is being processed if inflate is waiting for more input to complete
+   decoding of the code, or if it has completed decoding but is waiting for
+   more output space to write the literal or match data.
+
+     inflateMark() is used to mark locations in the input data for random
+   access, which may be at bit positions, and to note those cases where the
+   output of a code may span boundaries of random access blocks.  The current
+   location in the input stream can be determined from avail_in and data_type
+   as noted in the description for the Z_BLOCK flush parameter for inflate.
+
+     inflateMark returns the value noted above, or -65536 if the provided
+   source stream state was inconsistent.
+*/
 long ZEXPORT inflateMark (z_streamp strm)
 {
     struct inflate_state* state;

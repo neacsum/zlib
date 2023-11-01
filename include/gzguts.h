@@ -1,6 +1,8 @@
-/* gzguts.h -- zlib internal header definitions for gz* operations
- * Copyright (C) 2004-2019 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h
+/*!
+  \file gzguts.h zlib internal header definitions for gz* operations
+
+  Copyright (C) 2004-2019 Mark Adler
+  For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 #ifdef _LARGEFILE64_SOURCE
@@ -165,38 +167,45 @@
 #define COPY 1      /* copy input directly */
 #define GZIP 2      /* decompress a gzip stream */
 
-/* internal gzip file state data structure */
+/*! internal gzip file state data structure */
 typedef struct {
-        /* exposed contents for gzgetc() macro */
-    struct gzFile_s x;      /* "x" for exposed */
-                            /* x.have: number of bytes available at x.next */
-                            /* x.next: next output data to deliver or write */
-                            /* x.pos: current position in uncompressed data */
-        /* used for both reading and writing */
-    int mode;               /* see gzip modes above */
-    int fd;                 /* file descriptor */
-    char *path;             /* path or fd for error messages */
-    unsigned size;          /* buffer size, zero if not allocated yet */
-    unsigned want;          /* requested buffer size, default is GZBUFSIZE */
-    unsigned char *in;      /* input buffer (double-sized when writing) */
-    unsigned char *out;     /* output buffer (double-sized when reading) */
-    int direct;             /* 0 if processing gzip, 1 if transparent */
-        /* just for reading */
-    int how;                /* 0: get header, 1: copy, 2: decompress */
-    z_off64_t start;        /* where the gzip data started, for rewinding */
-    int eof;                /* true if end of input file reached */
-    int past;               /* true if read requested past end */
-        /* just for writing */
-    int level;              /* compression level */
-    int strategy;           /* compression strategy */
-    int reset;              /* true if a reset is pending after a Z_FINISH */
-        /* seek request */
-    z_off64_t skip;         /* amount to skip (already rewound if backwards) */
-    int seek;               /* true if seek request pending */
-        /* error information */
-    int err;                /* error code */
-    char *msg;              /* error message */
-        /* zlib inflate or deflate stream */
+    /*! exposed contents for gzgetc() macro
+             - x for exposed
+             - x.have: number of bytes available at x.next
+             - x.next: next output data to deliver or write
+             - x.pos: current position in uncompressed data */
+    struct gzFile_s x;
+
+        /*! \name used for both reading and writing */
+        ///@{
+    int mode;               /*!< see gzip modes above */
+    int fd;                 /*!< file descriptor */
+    char *path;             /*!< path or fd for error messages */
+    unsigned size;          /*!< buffer size, zero if not allocated yet */
+    unsigned want;          /*!< requested buffer size, default is GZBUFSIZE */
+    unsigned char *in;      /*!< input buffer (double-sized when writing) */
+    unsigned char *out;     /*!< output buffer (double-sized when reading) */
+    int direct;             /*!< 0 if processing gzip, 1 if transparent @}*/
+        /*! \name just for reading */
+        ///@{
+    int how;                /*!< 0: get header, 1: copy, 2: decompress */
+    z_off64_t start;        /*!< where the gzip data started, for rewinding */
+    int eof;                /*!< true if end of input file reached */
+    int past;               /*!< true if read requested past end @}*/
+        /*! \name just for writing */
+        ///@{
+    int level;              /*!< compression level */
+    int strategy;           /*!< compression strategy */
+    int reset;              /*!< true if a reset is pending after a Z_FINISH @}*/
+        /*!< seek request */
+        ///@{
+    z_off64_t skip;         /*!< amount to skip (already rewound if backwards) */
+    int seek;               /*!< true if seek request pending @}*/
+        /*! \name error information */
+        ///@{
+    int err;                /*!< error code */
+    char *msg;              /*!< error message @}*/
+        /*! zlib inflate or deflate stream */
     z_stream strm;          /* stream structure in-place (not a pointer) */
 } gz_state;
 typedef gz_state FAR *gz_statep;

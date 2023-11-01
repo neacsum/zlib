@@ -1,12 +1,15 @@
-/* zutil.h -- internal interface and configuration of the compression library
- * Copyright (C) 1995-2022 Jean-loup Gailly, Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h
- */
+/*!
+  \file zutil.h Internal interface and configuration of the compression library
 
-/* WARNING: this file should *not* be used by applications. It is
-   part of the implementation of the compression library and is
-   subject to change. Applications should only use zlib.h.
- */
+  Copyright (C) 1995-2022 Jean-loup Gailly, Mark Adler
+  For conditions of distribution and use, see copyright notice in zlib.h
+
+  \warning  This file should **not** be used by applications. It is
+            part of the implementation of the compression library and is
+            subject to change. Applications should only use zlib.h.
+
+*/
+
 
 /* @(#) $Id$ */
 

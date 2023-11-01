@@ -1,7 +1,9 @@
-/* adler32.c -- compute the Adler-32 checksum of a data stream
- * Copyright (C) 1995-2011, 2016 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h
- */
+/*!
+  \file adler32.c Compute the Adler-32 checksum of a data stream
+
+  Copyright (C) 1995-2011, 2016 Mark Adler
+  For conditions of distribution and use, see copyright notice in zlib.h
+*/
 
 /* @(#) $Id$ */
 
@@ -58,6 +60,10 @@
 #endif
 
 /* ========================================================================= */
+/*!
+   Same as adler32(), but with a size_t length.
+*/
+
 uLong ZEXPORT adler32_z(uLong adler, const Bytef *buf, z_size_t len) {
     unsigned long sum2;
     unsigned n;
@@ -125,11 +131,41 @@ uLong ZEXPORT adler32_z(uLong adler, const Bytef *buf, z_size_t len) {
 }
 
 /* ========================================================================= */
+/*!
+  Update a running Adler-32 checksum with the bytes buf[0..len-1] and
+  return the updated checksum. An Adler-32 value is in the range of a 32-bit
+  unsigned integer. If buf is Z_NULL, this function returns the required
+  initial value for the checksum.
+
+  An Adler-32 checksum is almost as reliable as a CRC-32 but can be computed
+  much faster.
+
+  Usage example:
+```C
+    uLong adler = adler32(0L, Z_NULL, 0);
+
+    while (read_buffer(buffer, length) != EOF) {
+      adler = adler32(adler, buffer, length);
+    }
+    if (adler != original_adler) error();
+```
+*/
 uLong ZEXPORT adler32(uLong adler, const Bytef *buf, uInt len) {
     return adler32_z(adler, buf, len);
 }
 
 /* ========================================================================= */
+/*!
+  Combine two Adler-32 checksums into one.
+  
+  For two sequences of bytes, `seq1` and `seq2` with lengths `len1` and `len2`,
+  Adler-32 checksums were calculated for each, `adler1` and `adler2`. 
+  adler32_combine() returns the Adler-32 checksum of `seq1` and `seq2`
+  concatenated, requiring only `adler1`, `adler2`, and `len2`.
+  
+  Note that the z_off_t type (like off_t) is a signed integer.  If `len2` is
+  negative, the result has no meaning or utility.
+*/
 local uLong adler32_combine_(uLong adler1, uLong adler2, z_off64_t len2) {
     unsigned long sum1;
     unsigned long sum2;

@@ -1,23 +1,25 @@
-/* inftrees.c -- generate Huffman trees for efficient decoding
- * Copyright (C) 1995-2023 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h
- */
+/* 
+  \file inftrees.c Generate Huffman trees for efficient decoding
+
+  Copyright (C) 1995-2023 Mark Adler
+  For conditions of distribution and use, see copyright notice in zlib.h
+*/
 
 #include "zutil.h"
 #include "inftrees.h"
 
 #define MAXBITS 15
 
-const char inflate_copyright[] =
-   " inflate 1.3.0.1 Copyright 1995-2023 Mark Adler ";
-/*
+/*!
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
   include such an acknowledgment, I would appreciate that you keep this
   copyright string in the executable of your product.
  */
+const char inflate_copyright[] =
+   " inflate 1.3.0.1 Copyright 1995-2023 Mark Adler ";
 
-/*
+/*!
    Build a set of tables to decode the provided canonical Huffman code.
    The code lengths are lens[0..codes-1].  The result starts at *table,
    whose indices are 0..2^bits-1.  work is a writable array of at least
