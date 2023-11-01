@@ -14,7 +14,7 @@
 #  pragma message("Assembler code may have bugs -- use at your own risk")
 #else
 
-/*
+/*!
    Decode literal, length, and distance codes and write out the resulting
    literal and match bytes until either not enough input or output is
    available, an end-of-block is encountered, or a data error is encountered.
@@ -23,30 +23,30 @@
    inflate execution time is spent in this routine.
 
    Entry assumptions:
-
+```C
         state->mode == LEN
         strm->avail_in >= 6
         strm->avail_out >= 258
         start >= strm->avail_out
         state->bits < 8
-
+```
    On return, state->mode is one of:
 
-        LEN -- ran out of enough output space or enough available input
-        TYPE -- reached end of block code, inflate() to interpret next block
-        BAD -- error in block data
+       - LEN -- ran out of enough output space or enough available input
+       - TYPE -- reached end of block code, inflate() to interpret next block
+       - BAD -- error in block data
 
    Notes:
 
     - The maximum input bits used by a length/distance pair is 15 bits for the
       length code, 5 bits for the length extra, 15 bits for the distance code,
       and 13 bits for the distance extra.  This totals 48 bits, or six bytes.
-      Therefore if strm->avail_in >= 6, then there is enough input to avoid
+      Therefore if `strm->avail_in >= 6`, then there is enough input to avoid
       checking for available input while decoding.
 
     - The maximum bytes that a single length/distance pair can output is 258
       bytes, which is the maximum length that can be coded.  inflate_fast()
-      requires strm->avail_out >= 258 for each loop to avoid checking for
+      requires `strm->avail_out >= 258` for each loop to avoid checking for
       output space.
  */
 void ZLIB_INTERNAL inflate_fast (z_streamp strm, unsigned start)

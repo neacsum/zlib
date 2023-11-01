@@ -131,7 +131,7 @@ typedef struct internal_state {
                          performed with a length multiple of the block size.
                          Also, it limits the window size to 64K, which is quite
                          useful on MSDOS.
-                         \trodo use the user input buffer as sliding window. */
+                         \todo use the user input buffer as sliding window. */
 
     ulg window_size;     /*!< Actual size of window: 2*wSize, except when the user
                          input buffer is directly used as sliding window. */
@@ -192,7 +192,7 @@ typedef struct internal_state {
     uInt good_match;
     /*!< Use a faster search when the previous match is longer than this */
 
-    int nice_match; /* Stop searching when current match exceeds this */
+    int nice_match; /*!< Stop searching when current match exceeds this */
     ///@}
                 /*! \name used by trees.c: */
     ///@{

@@ -529,12 +529,17 @@ int ZEXPORT inflateBackInit_(z_streamp strm, int windowBits,
           inflateBackInit_((strm), (windowBits), (window), \
                            ZLIB_VERSION, (int)sizeof(z_stream))
 #else
+/// Macro wrapper of deflateInit_() allows checking the zlib version and the compiler's view of z_stream
+/// \ingroup basic
 #  define deflateInit(strm, level) \
           deflateInit_((strm), (level), ZLIB_VERSION, (int)sizeof(z_stream))
 
 /// Macro wrapper of inflateInit_() allows checking the zlib version and the compiler's view of z_stream
+/// \ingroup basic
 #  define inflateInit(strm) \
           inflateInit_((strm), ZLIB_VERSION, (int)sizeof(z_stream))
+
+/// Macro wrapper of deflateInit2_() allows checking the zlib version and the compiler's view of z_stream
 #  define deflateInit2(strm, level, method, windowBits, memLevel, strategy) \
           deflateInit2_((strm),(level),(method),(windowBits),(memLevel),\
                         (strategy), ZLIB_VERSION, (int)sizeof(z_stream))
