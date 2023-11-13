@@ -71,19 +71,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)build/exe/$(PlatformTarget)/$(Configuration)/</OutDir>
+    <OutDir>$(SolutionDir)build/bin/$(PlatformTarget)/$(Configuration)/</OutDir>
     <IntDir>$(SolutionDir)build/o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)build/exe/$(PlatformTarget)/$(Configuration)/</OutDir>
+    <OutDir>$(SolutionDir)build/bin/$(PlatformTarget)/$(Configuration)/</OutDir>
     <IntDir>$(SolutionDir)build/o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)build/exe/$(PlatformTarget)/$(Configuration)/</OutDir>
+    <OutDir>$(SolutionDir)build/bin/$(PlatformTarget)/$(Configuration)/</OutDir>
     <IntDir>$(SolutionDir)build/o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)build/exe/$(PlatformTarget)/$(Configuration)/</OutDir>
+    <OutDir>$(SolutionDir)build/bin/$(PlatformTarget)/$(Configuration)/</OutDir>
     <IntDir>$(SolutionDir)build/o/$(ProjectName)/$(PlatformTarget)/$(Configuration)/</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -155,7 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\minigzip.c" />
+    <ClCompile Include="$(SolutionDir)examples\minigzip.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

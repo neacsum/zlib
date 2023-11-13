@@ -484,7 +484,7 @@ int main(int argc, char **argv) {
     off_t offset = -1;
     if (argc == 3) {
         char *end;
-        offset = strtoll(argv[2], &end, 10);
+        offset = (off_t) strtoll(argv[2], &end, 10);
         if (*end || offset < 0) {
             fprintf(stderr, "zran: %s is not a valid offset\n", argv[2]);
             return 1;

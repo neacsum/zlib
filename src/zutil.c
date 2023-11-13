@@ -47,8 +47,8 @@ const char * ZEXPORT zlibVersion()
 
   Compiler, assembler, and debug options:
     - 8: ZLIB_DEBUG
-    - 9: ASMV or ASMINF -- use ASM code
-    - 10: ZLIB_WINAPI -- exported functions use the WINAPI calling convention
+    - 9:  0 (reserved)
+    - 10: 0 (reserved)
     - 11: 0 (reserved)
 
   One-time table building (smaller code, but not thread-safe if true):
@@ -107,14 +107,6 @@ uLong ZEXPORT zlibCompileFlags()
     }
 #ifdef ZLIB_DEBUG
     flags += 1 << 8;
-#endif
-    /*
-#if defined(ASMV) || defined(ASMINF)
-    flags += 1 << 9;
-#endif
-     */
-#ifdef ZLIB_WINAPI
-    flags += 1 << 10;
 #endif
 #ifdef BUILDFIXED
     flags += 1 << 12;
