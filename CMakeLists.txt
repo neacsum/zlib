@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 2.4.4...3.15.0)
-set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS ON)
+cmake_minimum_required(VERSION 3.5.0)
 
 project(zlib C)
 
@@ -125,7 +124,7 @@ set(ZLIB_SRCS
     src/zutil.c
 )
 
-if(NOT MINGW)
+if(NOT MINGW AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" )
     set(ZLIB_DLL_SRCS
         env/win/zlib1.rc # If present will override custom build rule below.
     )
